@@ -27,16 +27,6 @@ export default function DashboardLayout({
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-[#F4A024] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Chargement...</p>
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mt-4 space-y-1 text-xs text-gray-400">
-              <p>{user ? `User: ${user.email} (${user.role})` : 'No user'}</p>
-              <p>Initialized: {initialized ? 'Yes' : 'No'}</p>
-              <p>Loading: {loading ? 'Yes' : 'No'}</p>
-              <p>IsAdmin: {isAdmin ? 'Yes' : 'No'}</p>
-              <p>IsAuthenticated: {isAuthenticated ? 'Yes' : 'No'}</p>
-            </div>
-          )}
         </div>
       </div>
     )

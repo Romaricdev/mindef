@@ -106,6 +106,23 @@ export function getOrderColumns({
       },
     },
     {
+      accessorKey: 'servedAt',
+      header: 'Servie à',
+      cell: ({ row }) => {
+        const order = row.original
+        if (!order.servedAt) {
+          return <span className="text-sm text-gray-400">—</span>
+        }
+        const date = new Date(order.servedAt)
+        return (
+          <div className="text-sm">
+            <p className="text-gray-900">{format(date, 'dd MMM yyyy', { locale: fr })}</p>
+            <p className="text-xs text-gray-500">{format(date, 'HH:mm', { locale: fr })}</p>
+          </div>
+        )
+      },
+    },
+    {
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => {

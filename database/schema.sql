@@ -153,6 +153,8 @@ CREATE TABLE orders (
   kitchen_status kitchen_order_status,
   table_id INTEGER REFERENCES restaurant_tables(id) ON DELETE SET NULL,
   table_number INTEGER,
+  party_size INTEGER,
+  served_at TIMESTAMPTZ,
   customer_name TEXT NOT NULL,
   customer_phone TEXT NOT NULL,
   customer_email TEXT,

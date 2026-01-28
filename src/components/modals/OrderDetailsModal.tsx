@@ -116,6 +116,20 @@ export function OrderDetailsModal({
               })}
             </p>
           </div>
+          {order.servedAt && (
+            <div className="space-y-1">
+              <p className="text-gray-500">Servie à</p>
+              <p className="font-medium text-gray-900">
+                {formatDate(order.servedAt, {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </p>
+            </div>
+          )}
           {order.paymentMethod && (
             <div className="space-y-1">
               <p className="text-gray-500">Paiement</p>

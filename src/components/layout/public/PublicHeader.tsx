@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { 
   Menu, 
@@ -9,7 +10,6 @@ import {
   ShoppingBag, 
   User,
   ChevronDown,
-  ChefHat,
   LogOut
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -71,13 +71,16 @@ export function PublicHeader() {
             
             {/* Logo */}
             <Link href="/home" className="flex items-center gap-3 flex-shrink-0">
-              <div className="w-12 h-12 rounded-xl bg-[#F4A024] flex items-center justify-center">
-                <ChefHat className="w-7 h-7 text-white" />
-              </div>
-              <div className="hidden sm:block">
-                <span className="font-semibold text-xl text-gray-900">
-                  Mess des Officiers
-                </span>
+              <div className="relative w-32 h-12 sm:w-40 sm:h-14 md:w-48 md:h-16 flex items-center">
+                <Image
+                  src="https://nlpizsiqsanewubknrsu.supabase.co/storage/v1/object/public/images/images_public/logo.png"
+                  alt="Mess des Officiers"
+                  fill
+                  className="object-contain"
+                  priority
+                  sizes="(max-width: 640px) 128px, (max-width: 768px) 160px, 192px"
+                  unoptimized
+                />
               </div>
             </Link>
 

@@ -124,6 +124,7 @@ export interface Order {
   type: OrderType
   tableNumber?: number
   partySize?: number // Nombre de personnes pour les commandes sur place
+  servedAt?: string // Heure de remise au client (kitchen_status = served)
   customerName: string
   customerPhone: string
   customerEmail?: string

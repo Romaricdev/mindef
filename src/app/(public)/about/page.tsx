@@ -171,21 +171,21 @@ function ValuesSection() {
 
 const teamMembers = [
   {
-    name: 'Chef Jean-Baptiste',
+    name: 'Chef Samuel',
     role: 'Chef Exécutif',
-    image: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?q=80&w=400&auto=format&fit=crop',
+    image: 'https://nlpizsiqsanewubknrsu.supabase.co/storage/v1/object/public/images/images_public/33447.jpg',
     description: '15 ans d\'expérience dans la gastronomie camerounaise et internationale.',
   },
   {
-    name: 'Marie-Claire',
-    role: 'Directrice de Service',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=400&auto=format&fit=crop',
-    description: 'Passionnée par l\'accueil et l\'expérience client exceptionnelle.',
+    name: 'Patrice',
+    role: 'Directeur de Service',
+    image: 'https://nlpizsiqsanewubknrsu.supabase.co/storage/v1/object/public/images/images_public/34939%20%281%29.jpg',
+    description: 'Passionné par l\'accueil et l\'expérience client exceptionnelle.',
   },
   {
-    name: 'Pierre',
+    name: 'Joseph',
     role: 'Sous-Chef',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop',
+    image: 'https://nlpizsiqsanewubknrsu.supabase.co/storage/v1/object/public/images/images_public/62807.jpg',
     description: 'Spécialiste des grillades et des plats traditionnels.',
   },
 ]
@@ -217,6 +217,7 @@ function TeamSection() {
                     className="object-cover"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     quality={90}
+                    unoptimized
                   />
                 </div>
                 <div className="p-6 sm:p-8">

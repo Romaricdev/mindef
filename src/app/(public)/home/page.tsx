@@ -16,27 +16,7 @@ import {
   Users
 } from 'lucide-react'
 import { FadeIn, Stagger } from '@/components/animations'
-import { useAppSettings } from '@/hooks'
-
-// ============================================
-// MOCK DATA
-// ============================================
-
-const menuCategories = [
-  { id: 'starters', label: 'Entrées', icon: '🥗', count: 8 },
-  { id: 'mains', label: 'Plats Principaux', icon: '🍖', count: 12 },
-  { id: 'grills', label: 'Grillades', icon: '🔥', count: 6 },
-  { id: 'fish', label: 'Poissons', icon: '🐟', count: 5 },
-  { id: 'desserts', label: 'Desserts', icon: '🍰', count: 7 },
-  { id: 'drinks', label: 'Boissons', icon: '🍹', count: 15 },
-]
-
-const featuredDishes = [
-  { name: 'Poulet DG', price: '7 500 FCFA', category: 'Plat Principal' },
-  { name: 'Ndolé Royal', price: '8 000 FCFA', category: 'Spécialité' },
-  { name: 'Tilapia Braisé', price: '8 500 FCFA', category: 'Poisson' },
-  { name: 'Brochettes Mixtes', price: '9 000 FCFA', category: 'Grillade' },
-]
+import { useAppSettings, useDailyMenuItems } from '@/hooks'
 
 // ============================================
 // COMPONENTS
@@ -169,23 +149,18 @@ function HeroSection() {
           {/* Colonne droite : Image immersive */}
           <div className="order-1 md:order-2 relative flex items-center justify-center w-full min-w-0">
             <FadeIn delay={0.3} direction="left">
-              <div className="relative w-full aspect-[4/3] sm:aspect-[4/5] md:aspect-[3/4] lg:aspect-[3/4] rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl">
-                {/* Overlay subtil pour adoucir l'image */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent z-10" />
-                
+              <div className="relative w-full aspect-[4/3] sm:aspect-[4/5] md:aspect-[3/4] lg:aspect-[4/5] min-h-[300px] sm:min-h-[360px] md:min-h-[420px] lg:min-h-[480px] overflow-hidden bg-white">
                 {/* Image principale */}
                 <Image
-                  src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1000&auto=format&fit=crop"
+                  src="https://nlpizsiqsanewubknrsu.supabase.co/storage/v1/object/public/images/images_public/407745033_05dbafde-b769-43ad-909e-a3ab5f6dd7ea-removebg-preview.png"
                   alt="Table dressée élégante au Mess des Officiers"
                   fill
-                  className="object-cover"
+                  className="object-contain"
                   priority
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 40vw"
                   quality={90}
+                  unoptimized
                 />
-                
-                {/* Décoration subtile en arrière-plan (desktop seulement) */}
-                <div className="hidden lg:block absolute -bottom-6 -right-6 w-32 h-32 bg-[#F4A024]/10 rounded-2xl blur-xl -z-10" />
               </div>
             </FadeIn>
           </div>
@@ -209,19 +184,18 @@ function AboutSection() {
         <div className="grid md:grid-cols-2 gap-6 sm:gap-8 md:gap-10 lg:gap-16 xl:gap-20 items-center">
           <FadeIn>
             {/* Image Side */}
-            <div className="relative order-2 md:order-1">
-              <div className="aspect-[4/5] md:aspect-[3/4] bg-gray-100 rounded-2xl md:rounded-3xl overflow-hidden relative shadow-xl">
+            <div className="relative order-2 md:order-1 flex items-center justify-center w-full min-w-0">
+              <div className="relative w-full aspect-[4/3] sm:aspect-[4/5] md:aspect-[3/4] lg:aspect-[4/5] min-h-[300px] sm:min-h-[360px] md:min-h-[420px] lg:min-h-[480px] overflow-hidden bg-white">
                 {/* Image du restaurant */}
                 <Image
-                  src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=1000&auto=format&fit=crop"
+                  src="https://nlpizsiqsanewubknrsu.supabase.co/storage/v1/object/public/images/images_public/407802468_025431af-6f8a-41e7-94af-f5162e915f64-removebg-preview.png"
                   alt="Intérieur élégant du Mess des Officiers"
                   fill
-                  className="object-cover"
+                  className="object-contain"
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   quality={90}
+                  unoptimized
                 />
-                {/* Overlay subtil */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
                 
                 {/* Decorative badge - Responsive positioning pour tablette */}
                 <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 md:-bottom-6 md:-right-6 w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 bg-[#F4A024] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-xl z-10">
@@ -296,20 +270,19 @@ function AboutSection() {
 }
 
 function MenuSection() {
-  const [activeCategory, setActiveCategory] = useState('mains')
+  const { menuItems, loading, error } = useDailyMenuItems()
+
+  // Formater le prix en FCFA
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'decimal',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price) + ' FCFA'
+  }
 
   return (
-    <section className="relative py-12 sm:py-16 md:py-14 lg:py-24 xl:py-32 overflow-hidden">
-      {/* Dark Background with overlay */}
-      <div className="absolute inset-0 bg-gray-900">
-        <div 
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23F4A024' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-          }}
-        />
-      </div>
-
+    <section className="relative py-12 sm:py-16 md:py-14 lg:py-24 xl:py-32 bg-white overflow-hidden">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <FadeIn>
@@ -317,67 +290,90 @@ function MenuSection() {
             <span className="inline-block px-4 py-1.5 bg-[#F4A024]/20 text-[#F4A024] text-sm font-semibold rounded-full mb-4 sm:mb-5 md:mb-5">
               Sélection du Chef
             </span>
-            <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-5xl font-bold text-white mb-3 sm:mb-4 md:mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-5xl font-bold text-gray-900 mb-3 sm:mb-4 md:mb-4">
               Notre Carte du Jour
             </h2>
-            <p className="text-sm sm:text-base md:text-base lg:text-lg text-gray-400 max-w-2xl mx-auto text-justify break-words px-2">
+            <p className="text-sm sm:text-base md:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto text-justify break-words px-2">
               Explorez notre menu soigneusement élaboré, mettant en valeur 
               les meilleures saveurs de la cuisine camerounaise.
             </p>
           </div>
         </FadeIn>
 
-        {/* Categories Grid */}
-        <Stagger className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3 md:gap-4 lg:gap-6 mb-8 sm:mb-12 md:mb-10 lg:mb-20">
-          {menuCategories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setActiveCategory(category.id)}
-              className={`p-3 sm:p-4 md:p-5 lg:p-6 rounded-xl sm:rounded-2xl text-center transition-all duration-300 min-h-[90px] sm:min-h-[100px] md:min-h-[110px] lg:min-h-[120px] ${
-                activeCategory === category.id
-                  ? 'bg-[#F4A024] text-white shadow-lg shadow-[#F4A024]/30 scale-105'
-                  : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
-              }`}
-            >
-              <span className="text-2xl sm:text-3xl mb-2 sm:mb-3 block">{category.icon}</span>
-              <p className="font-semibold text-xs sm:text-sm mb-1">{category.label}</p>
-              <p className={`text-[10px] sm:text-xs ${activeCategory === category.id ? 'text-white/80' : 'text-gray-500'}`}>
-                {category.count} plats
-              </p>
-            </button>
-          ))}
-        </Stagger>
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <p className="text-gray-600">Chargement du menu du jour...</p>
+          </div>
+        )}
 
-        {/* Featured Dishes - Responsive pour tablette */}
-        <Stagger className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-          {featuredDishes.map((dish, index) => (
-            <div
-              key={index}
-              className="bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10 hover:border-[#F4A024]/50 transition-all duration-300 group"
-            >
-              {/* Dish Image Placeholder */}
-              <div className="aspect-square bg-white/5 rounded-lg sm:rounded-xl mb-3 sm:mb-4 flex items-center justify-center overflow-hidden">
-                <Utensils className="w-10 h-10 sm:w-12 sm:h-12 text-white/20 group-hover:text-[#F4A024]/50 transition-colors" />
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-12">
+            <p className="text-red-600">Erreur: {error}</p>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && !error && menuItems.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-600">Aucun menu du jour disponible pour le moment.</p>
+          </div>
+        )}
+
+        {/* Menu Items Grid */}
+        {!loading && !error && menuItems.length > 0 && (
+          <Stagger className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+            {menuItems.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-200 hover:border-[#F4A024]/50 transition-all duration-300 group shadow-sm hover:shadow-lg"
+              >
+                {/* Product Image */}
+                <div className="aspect-square bg-gray-100 rounded-lg sm:rounded-xl mb-3 sm:mb-4 flex items-center justify-center overflow-hidden relative">
+                  {item.image ? (
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      quality={90}
+                      unoptimized
+                    />
+                  ) : (
+                    <Utensils className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 group-hover:text-[#F4A024]/50 transition-colors" />
+                  )}
+                </div>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mt-1 mb-2 line-clamp-2">{item.name}</h3>
+                {item.description && (
+                  <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
+                )}
+                <div className="flex items-center justify-between">
+                  <p className="text-sm sm:text-base text-[#F4A024] font-bold">{formatPrice(item.price)}</p>
+                  {!item.available && (
+                    <span className="text-xs text-red-600 font-medium">Indisponible</span>
+                  )}
+                </div>
               </div>
-              <span className="text-[10px] sm:text-xs text-[#F4A024] font-medium">{dish.category}</span>
-              <h3 className="text-base sm:text-lg font-semibold text-white mt-1 mb-2">{dish.name}</h3>
-              <p className="text-sm sm:text-base text-[#F4A024] font-bold">{dish.price}</p>
-            </div>
-          ))}
-        </Stagger>
+            ))}
+          </Stagger>
+        )}
 
         {/* View Full Menu CTA */}
-        <FadeIn delay={0.3}>
-          <div className="text-center mt-8 sm:mt-12 md:mt-10 lg:mt-20">
-            <Link
-              href="/menu"
-              className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-[#F4A024] text-white font-semibold text-sm sm:text-base rounded-xl hover:bg-[#C97F16] transition-colors min-h-[48px]"
-            >
-              Voir le Menu Complet
-              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-            </Link>
-          </div>
-        </FadeIn>
+        {!loading && !error && menuItems.length > 0 && (
+          <FadeIn delay={0.3}>
+            <div className="text-center mt-8 sm:mt-12 md:mt-10 lg:mt-20">
+              <Link
+                href="/menu"
+                className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-[#F4A024] text-white font-semibold text-sm sm:text-base rounded-xl hover:bg-[#C97F16] transition-colors min-h-[48px]"
+              >
+                Voir le Menu Complet
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              </Link>
+            </div>
+          </FadeIn>
+        )}
       </div>
     </section>
   )
@@ -410,8 +406,8 @@ function GallerySection() {
               alt: "Salle à manger élégante du restaurant",
             },
             {
-              src: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?q=80&w=800&auto=format&fit=crop',
-              alt: "Chef préparant un plat gastronomique",
+              src: 'https://nlpizsiqsanewubknrsu.supabase.co/storage/v1/object/public/images/images_public/407745033_05dbafde-b769-43ad-909e-a3ab5f6dd7ea-removebg-preview.png',
+              alt: "Table dressée élégante au Mess des Officiers",
             },
             {
               src: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=800&auto=format&fit=crop',
@@ -430,6 +426,7 @@ function GallerySection() {
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 quality={90}
                 priority={idx === 0}
+                unoptimized={image.src.includes('supabase.co')}
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
             </div>
