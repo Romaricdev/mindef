@@ -778,8 +778,8 @@ export async function fetchActiveOrdersToday(): Promise<
       ...order,
       kitchenStatus: (r.kitchen_status as KitchenOrderStatus) || 'pending',
       validatedAt: r.validated_at || r.created_at,
-      paidAt: r.paid_at || null,
-      servedAt: r.served_at || null,
+      paidAt: r.paid_at ?? undefined,
+      servedAt: r.served_at ?? undefined,
     }
   })
 }
