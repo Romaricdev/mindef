@@ -184,24 +184,25 @@ function AboutSection() {
         <div className="grid md:grid-cols-2 gap-6 sm:gap-8 md:gap-10 lg:gap-16 xl:gap-20 items-center">
           <FadeIn>
             {/* Image Side */}
-            <div className="relative order-2 md:order-1 flex items-center justify-center w-full min-w-0">
+            <div className="relative order-2 md:order-1 w-full">
               <div className="relative w-full aspect-[4/3] sm:aspect-[4/5] md:aspect-[3/4] lg:aspect-[4/5] min-h-[300px] sm:min-h-[360px] md:min-h-[420px] lg:min-h-[480px] overflow-hidden bg-white">
-                {/* Image du restaurant */}
+                {/* Image du restaurant - Centrée avec ajustement pour compenser l'espace vide */}
                 <Image
                   src="https://nlpizsiqsanewubknrsu.supabase.co/storage/v1/object/public/images/images_public/407802468_025431af-6f8a-41e7-94af-f5162e915f64-removebg-preview.png"
                   alt="Intérieur élégant du Mess des Officiers"
                   fill
                   className="object-contain"
+                  style={{ objectPosition: '55% center' }}
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   quality={90}
                   unoptimized
                 />
                 
-                {/* Decorative badge - Responsive positioning pour tablette */}
-                <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 md:-bottom-6 md:-right-6 w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 bg-[#F4A024] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-xl z-10">
+                {/* Decorative badge - Masqué sur mobile, visible à partir de la tablette */}
+                <div className="hidden md:flex absolute bottom-4 right-4 md:-bottom-6 md:-right-6 w-28 sm:w-28 md:w-32 md:h-32 bg-[#F4A024] rounded-xl sm:rounded-2xl items-center justify-center shadow-xl z-10">
                   <div className="text-center text-white">
-                    <p className="text-xl sm:text-2xl md:text-3xl font-bold">15</p>
-                    <p className="text-[10px] sm:text-xs">Ans</p>
+                    <p className="text-2xl md:text-3xl font-bold">15</p>
+                    <p className="text-xs">Ans</p>
                   </div>
                 </div>
               </div>
