@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "name": "Mess des Officiers – Web Design System",
+    "version": "1.0.0",
+    "description": "Design system officiel du site web Mess des Officiers. Style institutionnel, élégant, UI-first, responsive.",
+    "usage": "Next.js / Tailwind / Cursor"
+  },
+  "colors": {
+    "primary": "#F4A024",
+    "primaryDark": "#C97F16",
+    "oliveAccent": "#4B4F1E",
+    "textPrimary": "#1E1E1E",
+    "textSecondary": "#555555",
+    "background": "#FFFFFF",
+    "backgroundMuted": "#F7F7F7",
+    "overlayDark": "rgba(0,0,0,0.65)",
+    "borderLight": "#E5E5E5",
+    "success": "#2E7D32",
+    "error": "#C62828",
+    "whatsapp": "#25D366"
+  },
+  "typography": {
+    "fontFamilies": {
+      "heading": "Poppins, Montserrat, sans-serif",
+      "body": "Inter, Roboto, sans-serif"
+    },
+    "fontSizes": {
+      "h1": "56px",
+      "h2": "40px",
+      "h3": "28px",
+      "sectionTitle": "22px",
+      "body": "16px",
+      "small": "14px"
+    }
+  },
+  "layout": {
+    "container": {
+      "maxWidth": "1200px",
+      "paddingX": "24px"
+    },
+    "spacing": {
+      "section": "80px",
+      "component": "24px",
+      "small": "12px"
+    }
+  },
+  "components": {
+    "header": {
+      "height": "80px",
+      "sticky": true
+    },
+    "button": {
+      "borderRadius": "6px",
+      "padding": "12px 20px"
+    }
+  }
+}

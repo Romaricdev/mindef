@@ -1,0 +1,7 @@
+export { BaseModal } from './BaseModal'
+export { ReservationDetailsModal } from './ReservationDetailsModal'
+export { TableDetailsModal } from './TableDetailsModal'
+export { HallDetailsModal } from './HallDetailsModal'
+export { OrderDetailsModal } from './OrderDetailsModal'
+export { MenuDetailsModal } from './MenuDetailsModal'
+export { QRCodeModal } from './QRCodeModal'

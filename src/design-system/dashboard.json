@@ -1,0 +1,61 @@
+{
+  "meta": {
+    "name": "Restaurant Admin Dashboard Design System",
+    "version": "1.0.0",
+    "description": "Design system pour dashboard administrateur de restaurant, orienté données, analytics et gestion opérationnelle.",
+    "inspiration": "Uber Eats Restaurant Dashboard",
+    "usage": "Next.js / Tailwind / Cursor"
+  },
+  "colors": {
+    "primary": "#2563EB",
+    "primaryDark": "#1E40AF",
+    "success": "#16A34A",
+    "warning": "#F59E0B",
+    "error": "#DC2626",
+    "info": "#0EA5E9",
+    "background": "#F9FAFB",
+    "surface": "#FFFFFF",
+    "surfaceMuted": "#F3F4F6",
+    "textPrimary": "#111827",
+    "textSecondary": "#6B7280",
+    "textMuted": "#9CA3AF",
+    "border": "#E5E7EB",
+    "divider": "#E5E7EB",
+    "chartBlue": "#3B82F6",
+    "chartBlueLight": "rgba(59,130,246,0.25)",
+    "chartGray": "#9CA3AF"
+  },
+  "typography": {
+    "fontFamilies": {
+      "base": "Inter, system-ui, sans-serif"
+    },
+    "fontSizes": {
+      "pageTitle": "24px",
+      "sectionTitle": "18px",
+      "cardTitle": "16px",
+      "body": "14px",
+      "small": "12px"
+    }
+  },
+  "layout": {
+    "sidebarWidth": "260px",
+    "headerHeight": "64px",
+    "contentMaxWidth": "1440px",
+    "pagePadding": "24px",
+    "gridGap": "24px"
+  },
+  "components": {
+    "card": {
+      "borderRadius": "8px",
+      "padding": "16px"
+    },
+    "button": {
+      "borderRadius": "6px",
+      "padding": "8px 14px"
+    },
+    "badge": {
+      "borderRadius": "999px",
+      "padding": "4px 8px"
+    }
+  }
+}

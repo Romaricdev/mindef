@@ -1,0 +1,195 @@
+---
+name: design-system-site-internet
+description: This is a new rule
+---
+
+# Overview
+
+Insert overview text here. The agent will only see this should they choose to apply the rule.
+
+{
+  "meta": {
+    "name": "Mess des Officiers – Web Design System",
+    "version": "1.0.0",
+    "description": "Design system officiel du site web Mess des Officiers. Style institutionnel, élégant, UI-first, responsive.",
+    "author": "Project Orchestrator",
+    "usage": "Next.js / Tailwind / Cursor"
+  },
+
+  "colors": {
+    "primary": "#F4A024",
+    "primaryDark": "#C97F16",
+    "oliveAccent": "#4B4F1E",
+    "textPrimary": "#1E1E1E",
+    "textSecondary": "#555555",
+    "background": "#FFFFFF",
+    "backgroundMuted": "#F7F7F7",
+    "overlayDark": "rgba(0,0,0,0.65)",
+    "borderLight": "#E5E5E5",
+    "success": "#2E7D32",
+    "error": "#C62828",
+    "whatsapp": "#25D366"
+  },
+
+  "typography": {
+    "fontFamilies": {
+      "heading": "Poppins, Montserrat, sans-serif",
+      "body": "Inter, Roboto, sans-serif"
+    },
+    "fontSizes": {
+      "h1": "56px",
+      "h2": "40px",
+      "h3": "28px",
+      "sectionTitle": "22px",
+      "body": "16px",
+      "small": "14px"
+    },
+    "fontWeights": {
+      "regular": 400,
+      "medium": 500,
+      "semiBold": 600,
+      "bold": 700
+    },
+    "lineHeights": {
+      "heading": 1.2,
+      "body": 1.6
+    }
+  },
+
+  "layout": {
+    "container": {
+      "maxWidth": "1200px",
+      "paddingX": "24px"
+    },
+    "spacing": {
+      "section": "80px",
+      "component": "24px",
+      "small": "12px"
+    }
+  },
+
+  "components": {
+    "header": {
+      "height": "80px",
+      "background": "#FFFFFF",
+      "textTransform": "uppercase",
+      "fontSize": "14px",
+      "sticky": true,
+      "elements": ["logo", "navigation", "actions"],
+      "interactions": {
+        "linkDefault": "textPrimary",
+        "linkActive": "primary",
+        "linkHover": "primary"
+      }
+    },
+
+    "hero": {
+      "alignment": "left",
+      "titleStyle": "h1",
+      "textStyle": "body",
+      "decorations": true,
+      "backgroundTypes": ["solid", "image"],
+      "overlay": "overlayDark"
+    },
+
+    "menuCategoryCard": {
+      "layout": "grid",
+      "icon": true,
+      "label": true,
+      "states": {
+        "default": {
+          "background": "transparent",
+          "textColor": "textPrimary"
+        },
+        "hover": {
+          "background": "backgroundMuted"
+        },
+        "active": {
+          "background": "oliveAccent",
+          "textColor": "#FFFFFF",
+          "indicator": "triangleBottom"
+        }
+      }
+    },
+
+    "gallery": {
+      "titleAlignment": "center",
+      "imageRatio": "auto",
+      "hoverEffect": false
+    },
+
+    "button": {
+      "borderRadius": "6px",
+      "padding": "12px 20px",
+      "fontWeight": "medium",
+      "states": {
+        "primary": {
+          "background": "primary",
+          "textColor": "#FFFFFF"
+        },
+        "hover": {
+          "background": "primaryDark"
+        },
+        "disabled": {
+          "background": "borderLight",
+          "textColor": "textSecondary"
+        }
+      }
+    },
+
+    "footer": {
+      "background": "backgroundMuted",
+      "columns": 3,
+      "textStyle": "small",
+      "sections": ["contact", "openingHours", "location"]
+    },
+
+    "floatingActions": {
+      "whatsapp": {
+        "position": "bottom-right",
+        "size": "56px",
+        "background": "whatsapp",
+        "iconColor": "#FFFFFF",
+        "zIndex": 50
+      }
+    }
+  },
+
+  "icons": {
+    "style": "outline",
+    "library": ["Lucide", "Heroicons"],
+    "size": "24px",
+    "color": "textPrimary"
+  },
+
+  "responsive": {
+    "breakpoints": {
+      "mobile": "0px",
+      "tablet": "768px",
+      "desktop": "1024px"
+    },
+    "rules": {
+      "mobile": {
+        "navigation": "hamburger",
+        "layout": "singleColumn",
+        "categories": "horizontalScroll"
+      },
+      "tablet": {
+        "layout": "twoColumns"
+      },
+      "desktop": {
+        "layout": "threeOrFourColumns",
+        "spacing": "large"
+      }
+    }
+  },
+
+  "designRules": [
+    "UI-first obligatoire",
+    "Espaces blancs généreux",
+    "Couleur primaire utilisée uniquement pour les actions",
+    "Typographie prioritaire sur la décoration",
+    "Pas d’animations excessives",
+    "Lisibilité avant esthétique"
+  ]
+}

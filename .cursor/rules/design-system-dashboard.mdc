@@ -1,0 +1,239 @@
+---
+name: design-system-dashboard
+description: This is a new rule
+---
+
+# Overview
+
+Insert overview text here. The agent will only see this should they choose to apply the rule.
+
+
+{
+  "meta": {
+    "name": "Restaurant Admin Dashboard Design System",
+    "version": "1.0.0",
+    "description": "Design system pour dashboard administrateur de restaurant, orienté données, analytics et gestion opérationnelle.",
+    "inspiration": "Uber Eats Restaurant Dashboard",
+    "usage": "Next.js / Tailwind / Cursor"
+  },
+
+  "colors": {
+    "primary": "#2563EB",
+    "primaryDark": "#1E40AF",
+    "success": "#16A34A",
+    "warning": "#F59E0B",
+    "error": "#DC2626",
+    "info": "#0EA5E9",
+
+    "background": "#F9FAFB",
+    "surface": "#FFFFFF",
+    "surfaceMuted": "#F3F4F6",
+
+    "textPrimary": "#111827",
+    "textSecondary": "#6B7280",
+    "textMuted": "#9CA3AF",
+
+    "border": "#E5E7EB",
+    "divider": "#E5E7EB",
+
+    "chartBlue": "#3B82F6",
+    "chartBlueLight": "rgba(59,130,246,0.25)",
+    "chartGray": "#9CA3AF"
+  },
+
+  "typography": {
+    "fontFamilies": {
+      "base": "Inter, system-ui, sans-serif"
+    },
+    "fontSizes": {
+      "pageTitle": "24px",
+      "sectionTitle": "18px",
+      "cardTitle": "16px",
+      "body": "14px",
+      "small": "12px"
+    },
+    "fontWeights": {
+      "regular": 400,
+      "medium": 500,
+      "semiBold": 600,
+      "bold": 700
+    },
+    "lineHeights": {
+      "base": 1.5
+    }
+  },
+
+  "layout": {
+    "sidebarWidth": "260px",
+    "headerHeight": "64px",
+    "contentMaxWidth": "1440px",
+    "pagePadding": "24px",
+    "gridGap": "24px"
+  },
+
+  "components": {
+    "sidebar": {
+      "background": "surface",
+      "borderRight": "border",
+      "items": [
+        "Dashboard",
+        "Orders",
+        "Products",
+        "Categories",
+        "Payments",
+        "Users",
+        "Settings"
+      ],
+      "item": {
+        "fontSize": "14px",
+        "iconSize": "18px"
+      },
+      "states": {
+        "default": {
+          "textColor": "textSecondary"
+        },
+        "active": {
+          "background": "surfaceMuted",
+          "textColor": "primary",
+          "fontWeight": "semiBold"
+        },
+        "hover": {
+          "background": "surfaceMuted"
+        }
+      }
+    },
+
+    "topbar": {
+      "height": "64px",
+      "background": "surface",
+      "elements": [
+        "search",
+        "notifications",
+        "userMenu"
+      ],
+      "borderBottom": "border"
+    },
+
+    "pageHeader": {
+      "titleStyle": "pageTitle",
+      "subtitleStyle": "small",
+      "actionsAlignment": "right"
+    },
+
+    "card": {
+      "background": "surface",
+      "borderRadius": "8px",
+      "padding": "16px",
+      "border": "border",
+      "shadow": "none",
+      "header": {
+        "title": "cardTitle",
+        "action": "dropdown"
+      }
+    },
+
+    "kpiCard": {
+      "valueFontSize": "24px",
+      "labelFontSize": "12px",
+      "trend": {
+        "up": "success",
+        "down": "error"
+      }
+    },
+
+    "chart": {
+      "type": ["line", "bar"],
+      "grid": true,
+      "legend": true,
+      "tooltip": true,
+      "colors": [
+        "chartBlue",
+        "chartGray"
+      ]
+    },
+
+    "table": {
+      "rowHeight": "48px",
+      "headerStyle": {
+        "fontSize": "12px",
+        "textTransform": "uppercase",
+        "textColor": "textMuted"
+      },
+      "cellStyle": {
+        "fontSize": "14px",
+        "textColor": "textPrimary"
+      },
+      "hover": {
+        "background": "surfaceMuted"
+      }
+    },
+
+    "button": {
+      "borderRadius": "6px",
+      "padding": "8px 14px",
+      "fontSize": "14px",
+      "states": {
+        "primary": {
+          "background": "primary",
+          "textColor": "#FFFFFF"
+        },
+        "secondary": {
+          "background": "surface",
+          "border": "border",
+          "textColor": "textPrimary"
+        },
+        "ghost": {
+          "background": "transparent",
+          "textColor": "textSecondary"
+        }
+      }
+    },
+
+    "badge": {
+      "borderRadius": "999px",
+      "padding": "4px 8px",
+      "fontSize": "12px",
+      "variants": {
+        "success": "success",
+        "warning": "warning",
+        "error": "error",
+        "info": "info"
+      }
+    }
+  },
+
+  "icons": {
+    "library": ["Lucide", "Heroicons"],
+    "style": "outline",
+    "size": "18px",
+    "color": "textSecondary"
+  },
+
+  "responsive": {
+    "breakpoints": {
+      "mobile": "0px",
+      "tablet": "768px",
+      "desktop": "1024px"
+    },
+    "rules": {
+      "mobile": {
+        "sidebar": "collapsed",
+        "cards": "singleColumn",
+        "tables": "scrollable"
+      },
+      "desktop": {
+        "sidebar": "fixed",
+        "cards": "grid"
+      }
+    }
+  },
+
+  "designRules": [
+    "Dashboard orienté données",
+    "Priorité à la lisibilité",
+    "Pas de couleurs décoratives",
+    "Chaque couleur a un sens fonctionnel",
+    "Grilles et alignements stricts",
+    "UI stable et professionnelle"
+  ]
+}

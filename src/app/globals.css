@@ -1,0 +1,165 @@
+@import "tailwindcss";
+
+/* ================================
+   Tailwind v4 Theme Configuration
+   ================================ */
+@theme {
+  /* Dashboard Colors */
+  --color-dashboard-primary: #F4A024;
+  --color-dashboard-primary-dark: #C97F16;
+  --color-dashboard-success: #16A34A;
+  --color-dashboard-warning: #F59E0B;
+  --color-dashboard-error: #DC2626;
+  --color-dashboard-info: #0EA5E9;
+  --color-dashboard-background: #F9FAFB;
+  --color-dashboard-surface: #FFFFFF;
+  --color-dashboard-surface-muted: #F3F4F6;
+  --color-dashboard-text-primary: #111827;
+  --color-dashboard-text-secondary: #6B7280;
+  --color-dashboard-text-muted: #9CA3AF;
+  --color-dashboard-border: #E5E7EB;
+
+  /* Site Colors */
+  --color-site-primary: #F4A024;
+  --color-site-olive-accent: #4B4F1E;
+
+  /* Animations */
+  --animate-shimmer: shimmer 2s infinite linear;
+  --animate-skeleton-pulse: skeleton-pulse 2s ease-in-out infinite;
+}
+
+/* Keyframes for animations */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  html {
+    overflow-x: hidden;
+  }
+  
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+  
+  /* Amélioration de la justification du texte */
+  .text-justify {
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+  }
+}
+
+/* ================================
+   Dashboard Layout System
+   ================================ */
+
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  grid-template-rows: 64px 1fr;
+  grid-template-areas:
+    "sidebar topbar"
+    "sidebar content";
+  min-height: 100vh;
+  background-color: #F9FAFB;
+}
+
+.dashboard-sidebar {
+  grid-area: sidebar;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  background-color: #FFFFFF;
+  border-right: 1px solid #E5E7EB;
+  z-index: 40;
+}
+
+.dashboard-topbar {
+  grid-area: topbar;
+  position: sticky;
+  top: 0;
+  height: 64px;
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #E5E7EB;
+  z-index: 30;
+}
+
+.dashboard-content {
+  grid-area: content;
+  padding: 24px;
+  overflow-y: auto;
+  max-width: 1440px;
+}
+
+/* Responsive - Mobile */
+@media (max-width: 1023px) {
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "topbar"
+      "content";
+  }
+
+  .dashboard-sidebar {
+    transform: translateX(-100%);
+  }
+
+  .dashboard-sidebar.translate-x-0 {
+    transform: translateX(0);
+  }
+
+  .dashboard-topbar {
+    grid-column: 1;
+  }
+
+  .dashboard-content {
+    padding: 16px;
+  }
+}
+
+/* Thermal Printer Styles - Only applied when printing */
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+  
+  .thermal-invoice,
+  .thermal-invoice * {
+    visibility: visible;
+  }
+  
+  .thermal-invoice {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 300px;
+  }
+}
