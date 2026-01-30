@@ -30,7 +30,7 @@ function HeroSection() {
       {/* 1. Background Image Full Screen */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2560&auto=format&fit=crop"
+          src="https://nlpizsiqsanewubknrsu.supabase.co/storage/v1/object/public/images/images_public/9920.jpg"
           alt="Ambiance gastronomique au Mess des Officiers"
           fill
           className="object-cover"
