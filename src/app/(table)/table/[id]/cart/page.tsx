@@ -8,6 +8,7 @@ import { Card, CardContent, Button, Badge } from '@/components/ui'
 import { formatPrice, cn, generateId } from '@/lib/utils'
 import { createOrderFromPos } from '@/lib/data/orders'
 import { updateTableStatus } from '@/lib/data/tables'
+import type { CartItem } from '@/types'
 import {
   ShoppingBag,
   Plus,
@@ -26,17 +27,16 @@ import {
 // ============================================
 
 interface CartItemCardProps {
-  item: {
-    id: string
-    name: string
-    price: number
-    quantity: number
-  }
+  item: CartItem
   onUpdateQuantity: (id: string, quantity: number) => void
   onRemove: (id: string) => void
 }
 
 function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
+  const addonsTotal = item.addons?.reduce((sum, a) => sum + a.price * a.quantity, 0) ?? 0
+  const lineUnitPrice = item.price + addonsTotal
+  const lineTotal = lineUnitPrice * item.quantity
+
   const handleDecrease = () => {
     if (item.quantity > 1) {
       onUpdateQuantity(item.id, item.quantity - 1)
@@ -72,8 +72,25 @@ function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
             </button>
           </div>
 
+          {item.addons && item.addons.length > 0 && (
+            <ul className="text-sm text-gray-600 mb-2 space-y-0.5">
+              {item.addons.map((a) => (
+                <li key={`${a.addonId}-${a.type}`}>
+                  + {a.name}
+                  {a.quantity > 1 ? ` × ${a.quantity}` : ''}
+                  {a.price > 0 ? ` — ${formatPrice(a.price * a.quantity, 'XAF').replace('XAF', 'FCFA')}` : ' (inclus)'}
+                </li>
+              ))}
+            </ul>
+          )}
+
           <p className="text-lg sm:text-xl lg:text-2xl font-bold text-[#F4A024] mb-4">
-            {formatPrice(item.price, 'XAF').replace('XAF', 'FCFA')}
+            {formatPrice(lineUnitPrice, 'XAF').replace('XAF', 'FCFA')}
+            {item.quantity > 1 && (
+              <span className="text-sm font-normal text-gray-500 ml-1">
+                × {item.quantity}
+              </span>
+            )}
           </p>
 
           {/* Quantity Controls */}
@@ -98,7 +115,7 @@ function CartItemCard({ item, onUpdateQuantity, onRemove }: CartItemCardProps) {
               </button>
             </div>
             <p className="text-base sm:text-lg text-gray-600">
-              Total: <span className="font-bold text-gray-900">{formatPrice(item.price * item.quantity, 'XAF').replace('XAF', 'FCFA')}</span>
+              Total: <span className="font-bold text-gray-900">{formatPrice(lineTotal, 'XAF').replace('XAF', 'FCFA')}</span>
             </p>
           </div>
         </div>
@@ -285,8 +302,8 @@ export default function TableCartPage({ params }: TableCartPageProps) {
           name: item.name,
           price: item.price,
           quantity: item.quantity,
-          image: undefined, // Les images ne sont pas stockées dans le panier actuellement
-          addons: [], // Pas de suppléments pour l'instant
+          image: undefined,
+          addons: item.addons ?? [],
         }
       })
       

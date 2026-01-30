@@ -1,9 +1,11 @@
 'use client'
 
-import { Card, CardContent } from '@/components/ui'
-import { ChefHat } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { ReactNode } from 'react'
+import { Card, CardContent } from '@/components/ui'
+
+const SITE_LOGO_URL = 'https://nlpizsiqsanewubknrsu.supabase.co/storage/v1/object/public/images/images_public/logo.png'
 
 interface AuthCardProps {
   title: string
@@ -16,15 +18,20 @@ export function AuthCard({ title, subtitle, children, footer }: AuthCardProps) {
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-white">
       <div className="w-full max-w-md">
-        {/* Logo */}
+        {/* Logo (même que le header du site) */}
         <div className="text-center mb-8">
-          <Link href="/home" className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-[#F4A024] flex items-center justify-center">
-              <ChefHat className="w-7 h-7 text-white" />
+          <Link href="/home" className="inline-block">
+            <div className="relative w-36 h-12 sm:w-44 sm:h-14 mx-auto">
+              <Image
+                src={SITE_LOGO_URL}
+                alt=""
+                fill
+                className="object-contain"
+                priority
+                sizes="(max-width: 640px) 144px, 176px"
+                unoptimized
+              />
             </div>
-            <span className="font-semibold text-xl text-gray-900">
-              Mess des Officiers
-            </span>
           </Link>
         </div>
 

@@ -1,9 +1,12 @@
 'use client'
 
 import { use } from 'react'
-import { ChefHat, ArrowRight } from 'lucide-react'
-import { Card, CardContent, Button, Badge } from '@/components/ui'
+import Image from 'next/image'
 import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
+import { Card, CardContent, Button, Badge } from '@/components/ui'
+
+const SITE_LOGO_URL = 'https://nlpizsiqsanewubknrsu.supabase.co/storage/v1/object/public/images/images_public/logo.png'
 
 interface TablePageProps {
   params: Promise<{ id: string }>
@@ -16,9 +19,17 @@ export default function TablePage({ params }: TablePageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-site-olive-accent to-[#2D2F12] flex items-center justify-center p-6">
       <Card variant="elevated" className="max-w-md w-full p-8 text-center">
-        {/* Logo */}
-        <div className="w-20 h-20 mx-auto rounded-2xl bg-site-primary flex items-center justify-center mb-6">
-          <ChefHat className="w-10 h-10 text-white" />
+        {/* Logo du site */}
+        <div className="relative w-36 h-12 sm:w-44 sm:h-14 mx-auto mb-6">
+          <Image
+            src={SITE_LOGO_URL}
+            alt=""
+            fill
+            className="object-contain"
+            priority
+            sizes="(max-width: 640px) 144px, 176px"
+            unoptimized
+          />
         </div>
 
         {/* Title */}

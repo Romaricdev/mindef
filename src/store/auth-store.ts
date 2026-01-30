@@ -285,24 +285,27 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signOut: async () => {
-        console.log('[AuthStore] Signing out...')
-        try {
-          const { error } = await supabase.auth.signOut()
-          
-          if (error) {
-            console.error('[AuthStore] Error signing out:', error)
-            return
-          }
-          
-          console.log('[AuthStore] Sign out successful')
+        const clearSession = () => {
           set({
             user: null,
             supabaseUser: null,
             loading: false,
             initialized: true,
           })
+        }
+        try {
+          const { error } = await supabase.auth.signOut()
+          if (error) {
+            console.warn('[AuthStore] Sign out error (clearing session anyway):', error.message)
+          }
+          clearSession()
         } catch (error) {
-          console.error('[AuthStore] Unexpected error signing out:', error)
+          // AuthSessionMissingError ou autre : pas de session côté Supabase, on vide quand même le store
+          const msg = error instanceof Error ? error.message : String(error)
+          if (!msg?.includes('session') && !msg?.includes('Session')) {
+            console.warn('[AuthStore] Sign out exception:', msg)
+          }
+          clearSession()
         }
       },
 

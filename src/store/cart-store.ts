@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { CartItem, MenuItem, CustomerBillingInfo, OrderType } from '@/types'
+import type { CartItem, MenuItem, CustomerBillingInfo, OrderType, OrderItemAddon } from '@/types'
 import { generateId } from '@/lib/utils'
 import { getDeliveryFeeCached } from '@/lib/app-settings'
 
@@ -13,6 +13,7 @@ interface CartState {
 
   // Actions
   addItem: (item: MenuItem, quantity?: number) => void
+  addItemWithAddons: (item: MenuItem, quantity: number, addons: OrderItemAddon[]) => void
   removeItem: (cartItemId: string) => void
   updateQuantity: (cartItemId: string, quantity: number) => void
   clearCart: () => void
@@ -43,13 +44,14 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   addItem: (menuItem: MenuItem, quantity = 1) => {
     set((state) => {
-      // Check if item already exists in cart
+      // Match only items without addons (same product, no options)
       const existingItem = state.items.find(
-        (item) => item.menuItemId === menuItem.id
+        (item) =>
+          item.menuItemId === menuItem.id &&
+          (!item.addons || item.addons.length === 0)
       )
 
       if (existingItem) {
-        // Update quantity
         return {
           items: state.items.map((item) =>
             item.id === existingItem.id
@@ -59,7 +61,6 @@ export const useCartStore = create<CartState>((set, get) => ({
         }
       }
 
-      // Add new item
       const newItem: CartItem = {
         id: generateId(),
         menuItemId: menuItem.id,
@@ -67,7 +68,20 @@ export const useCartStore = create<CartState>((set, get) => ({
         price: menuItem.price,
         quantity,
       }
+      return { items: [...state.items, newItem] }
+    })
+  },
 
+  addItemWithAddons: (menuItem: MenuItem, quantity: number, addons: OrderItemAddon[]) => {
+    set((state) => {
+      const newItem: CartItem = {
+        id: generateId(),
+        menuItemId: menuItem.id,
+        name: menuItem.name,
+        price: menuItem.price,
+        quantity,
+        addons: addons.length > 0 ? addons : undefined,
+      }
       return { items: [...state.items, newItem] }
     })
   },
@@ -122,10 +136,10 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   getSubtotal: () => {
-    return get().items.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    )
+    return get().items.reduce((total, item) => {
+      const addonTotal = item.addons?.reduce((a, ad) => a + ad.price * ad.quantity, 0) ?? 0
+      return total + (item.price + addonTotal) * item.quantity
+    }, 0)
   },
 
   getServiceFee: () => {

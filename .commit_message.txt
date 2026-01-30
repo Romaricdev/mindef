@@ -1,13 +1,13 @@
-feat(app): mode maintenance avec blocage ciblé
+feat(table-qr): choix des addons au menu QR table + correctifs
 
-Mode maintenance (paramètre + overlay)
-- app_settings: clé maintenance_mode (boolean), migration 014
-- useAppSettings: maintenanceMode, refetch, écoute app-settings-updated
-- Page Paramètres dashboard: carte "Mode maintenance" avec case à cocher, sauvegarde + dispatch event
-- Composant MaintenanceOverlay (message, lien optionnel vers Paramètres)
-- Layouts: public, table, dashboard intègrent l'overlay et refetch à la mise à jour des paramètres
+Addons menu QR table
+- Cart store: addItemWithAddons(menuItem, quantity, addons), getSubtotal/getTotal incluent les addons
+- addItem: fusion quantité uniquement pour lignes sans addons (même produit sans options)
+- TableAddonSelectorModal: sélection options incluses (gratuit) et suppléments (qté/prix), même logique que POS
+- Page menu table: clic "Sélectionner" ouvre le modal addons puis addItemWithAddons ou addItem selon le choix
+- Page panier table: affichage des addons par ligne, total ligne (produit + addons) × quantité, envoi addons à createOrderFromPos
 
-Blocage ciblé
-- Site public: overlay uniquement sur les pages d'actions (/reservation, /cart, /menu). Les autres pages (accueil, contact, etc.) restent accessibles
-- Table (QR): overlay sur tout le parcours commande
-- Dashboard et POS: overlay partout sauf /dashboard/settings (accès Paramètres pour désactiver)
+Correctifs (session précédente)
+- Facture définitive cuisine: affichage nom/téléphone client (paidOrderForInvoice) au lieu de "Client sur table" / "-"
+- SignOut: gestion AuthSessionMissingError, clearSession systématique pour réinitialiser l’état local
+- Menu QR table: cartes verticales, bouton vert "Sélectionné" sans icône, désélection, images BDD, logo sur page d’entrée

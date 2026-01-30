@@ -79,6 +79,8 @@ export function ActiveOrderCard({ order, onUpdateStatus, onServe, onPaymentCompl
     amountReceived?: number
     change?: number
   } | null>(null)
+  // Ordre avec nom/téléphone client pour la facture définitive (évite "Client sur table" / "-")
+  const [paidOrderForInvoice, setPaidOrderForInvoice] = useState<ActiveOrder | null>(null)
 
   // Refs for printing
   const preliminaryInvoiceRef = useRef<HTMLDivElement>(null)
@@ -191,14 +193,14 @@ export function ActiveOrderCard({ order, onUpdateStatus, onServe, onPaymentCompl
   }
 
   const handlePaymentComplete = (method: PaymentMethod, amountReceived?: number, change?: number) => {
-    setPaymentData({ method, amountReceived, change })
-    setInvoiceModalOpen(true)
-    // Add order to paid orders with customer info
     const orderWithCustomerInfo: ActiveOrder = {
       ...order,
       customerName,
       customerPhone,
     }
+    setPaidOrderForInvoice(orderWithCustomerInfo)
+    setPaymentData({ method, amountReceived, change })
+    setInvoiceModalOpen(true)
     addPaidOrder(orderWithCustomerInfo, method, amountReceived, change)
     // Ne pas appeler onPaymentComplete ici : on retire la commande seulement à la fermeture de la facture
   }
@@ -206,6 +208,7 @@ export function ActiveOrderCard({ order, onUpdateStatus, onServe, onPaymentCompl
   const handleClosePaidInvoice = () => {
     setInvoiceModalOpen(false)
     setPaymentData(null)
+    setPaidOrderForInvoice(null)
     onPaymentComplete?.()
   }
 
@@ -441,7 +444,7 @@ export function ActiveOrderCard({ order, onUpdateStatus, onServe, onPaymentCompl
         >
           <div ref={paidInvoiceRef}>
             <InvoicePreviewThermal
-              order={order}
+              order={paidOrderForInvoice ?? order}
               paymentMethod={paymentData.method}
               amountReceived={paymentData.amountReceived}
               change={paymentData.change}

@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCartStore } from '@/store/cart-store'
-import { Card, CardContent, Badge, Button } from '@/components/ui'
+import { Badge, Button } from '@/components/ui'
 import { formatPrice, cn } from '@/lib/utils'
-import { Clock, Plus, Check, Utensils, ArrowLeft, ShoppingBag, ChefHat, UtensilsCrossed } from 'lucide-react'
-import type { Category, MenuItem } from '@/types'
+import { Clock, Utensils, ArrowLeft, ShoppingBag, ChefHat } from 'lucide-react'
+import type { Category, MenuItem, OrderItemAddon } from '@/types'
 import { FadeIn, Stagger } from '@/components/animations'
 import { useDailyMenuItems } from '@/hooks'
+import { TableAddonSelectorModal } from '@/components/table/TableAddonSelectorModal'
 
 // ============================================
 // HERO SECTION
@@ -114,144 +115,101 @@ function CategoryFilter({ categories, activeCategory, onCategoryChange }: Catego
 }
 
 // ============================================
-// MENU ITEM CARD
+// MENU ITEM CARD (style section Menu page d'accueil : cartes verticales)
 // ============================================
 
 interface MenuItemCardProps {
   item: MenuItem
-  onAddToCart: (item: MenuItem) => void
+  onOpenAddonModal: (item: MenuItem) => void
   isAdding?: boolean
 }
 
-function MenuItemCard({ item, onAddToCart, isAdding = false }: MenuItemCardProps) {
-  const { items: cartItems } = useCartStore()
-  const [showSuccess, setShowSuccess] = useState(false)
-  
-  // Vérifier si l'item est dans le panier (utiliser menuItemId)
-  const cartItem = cartItems.find(ci => ci.menuItemId === item.id)
-  const isSelected = cartItem !== undefined
+function MenuItemCard({ item, onOpenAddonModal, isAdding = false }: MenuItemCardProps) {
+  const { items: cartItems, removeItem } = useCartStore()
+  // "Sélectionné" = une ligne panier avec ce produit sans addons (désélection = retirer cette ligne)
+  const cartItemNoAddons = cartItems.find(
+    (ci) => ci.menuItemId === item.id && (!ci.addons || ci.addons.length === 0)
+  )
+  const isSelected = cartItemNoAddons !== undefined
 
-  // Extraire quelques mots-clés de la description pour les tags (simulation)
-  const extractTags = (description: string): string[] => {
-    const commonIngredients = [
-      'Thyme', 'Oregano', 'Jalapeno', 'Bell Pepper', 'Beef', 'Chicken', 
-      'Pineapple', 'Kiwi', 'Raspberry', 'Sesame Oil', 'Soy Sauce', 'Noodles',
-      'Serrano Pepper', 'Spicy', 'Fresh'
-    ]
-    const words = description.toLowerCase().split(/\s+/)
-    const found = commonIngredients.filter(ing => 
-      words.some(word => word.includes(ing.toLowerCase()))
-    )
-    return found.slice(0, 4) // Limiter à 4 tags
-  }
-
-  const tags = extractTags(item.description || '')
-  const imageSrc =
-    item.image ||
-    'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=800&auto=format&fit=crop'
+  const imageSrc = item.image || ''
   const isSupabasePublicImage =
     /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\//i.test(imageSrc)
 
-  const handleSelect = () => {
-    if (!item.available || isAdding) return
-    onAddToCart(item)
-    setShowSuccess(true)
-    setTimeout(() => setShowSuccess(false), 2000)
+  const handleToggle = () => {
+    if (isAdding) return
+    if (isSelected && cartItemNoAddons) {
+      removeItem(cartItemNoAddons.id)
+    } else if (!isSelected && item.available) {
+      onOpenAddonModal(item)
+    }
   }
 
   return (
-    <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-all duration-300 relative">
-      {/* Badge de sélection en bas à droite */}
-      {isSelected && (
-        <div className="absolute bottom-4 right-4 w-10 h-10 bg-[#F4A024] rounded-full flex items-center justify-center shadow-lg z-10">
-          <Check className="w-5 h-5 text-white" />
-        </div>
+    <div
+      className={cn(
+        'bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border transition-all duration-300 group shadow-sm hover:shadow-lg',
+        isSelected
+          ? 'border-emerald-400/60 hover:border-emerald-500/70'
+          : 'border-gray-200 hover:border-[#F4A024]/50'
       )}
-
-      <div className="flex gap-4 sm:gap-5">
-        {/* Image circulaire */}
-        <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-full overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+    >
+      {/* Image (priorité à l'image de la base) */}
+      <div className="aspect-square bg-gray-100 rounded-lg sm:rounded-xl mb-3 sm:mb-4 flex items-center justify-center overflow-hidden relative">
+        {imageSrc ? (
           <Image
             src={imageSrc}
             alt={item.name}
             fill
-            className="object-cover"
-            sizes="96px"
-            quality={85}
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            quality={90}
             unoptimized={isSupabasePublicImage}
           />
-          {!item.available && (
-            <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-              <Badge variant="error" className="text-[10px]">
-                Indisponible
-              </Badge>
-            </div>
-          )}
-        </div>
-
-        {/* Contenu */}
-        <div className="flex-1 min-w-0">
-          {/* Nom du plat */}
-          <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-2 line-clamp-1">
-            {item.name}
-          </h3>
-
-          {/* Tags d'ingrédients */}
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3">
-              {tags.map((tag, index) => (
-                <div
-                  key={index}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 rounded-full text-xs text-gray-700"
-                >
-                  {index === 0 && <UtensilsCrossed className="w-3 h-3 text-gray-500" />}
-                  <span>{tag}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Prix et bouton sélectionner */}
-          <div className="flex items-center justify-between mt-3 sm:mt-4">
-            {/* Prix */}
-            <div>
-              <p className="text-lg sm:text-xl font-bold text-[#F4A024]">
-                {formatPrice(item.price)}
-              </p>
-              {item.preparationTime && (
-                <p className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
-                  <Clock className="w-3 h-3" />
-                  {item.preparationTime} min
-                </p>
-              )}
-            </div>
-
-            {/* Bouton Sélectionner */}
-            <Button
-              onClick={handleSelect}
-              disabled={!item.available || isAdding || showSuccess}
-              className={cn(
-                "rounded-lg transition-all duration-200 min-h-[40px] sm:min-h-[44px] px-4 sm:px-6",
-                isSelected || showSuccess
-                  ? "bg-[#F4A024] hover:bg-[#F4A024]/90 text-white"
-                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-              )}
-              variant="ghost"
-            >
-              {showSuccess || isSelected ? (
-                <>
-                  <Check className="w-4 h-4 mr-2" />
-                  Sélectionné
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Sélectionner
-                </>
-              )}
-            </Button>
+        ) : (
+          <Utensils className="w-10 h-10 sm:w-12 sm:h-12 text-gray-300 group-hover:text-[#F4A024]/50 transition-colors" />
+        )}
+        {!item.available && (
+          <div className="absolute inset-0 bg-white/85 flex items-center justify-center">
+            <Badge variant="error" className="text-xs">
+              Indisponible
+            </Badge>
           </div>
+        )}
+      </div>
+
+      <h3 className="text-base sm:text-lg font-semibold text-gray-900 mt-1 mb-2 line-clamp-2">
+        {item.name}
+      </h3>
+      {item.description && (
+        <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
+      )}
+
+      <div className="flex items-center justify-between gap-3 mt-auto">
+        <div>
+          <p className="text-sm sm:text-base text-[#F4A024] font-bold">{formatPrice(item.price)}</p>
+          {item.preparationTime && (
+            <p className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+              <Clock className="w-3 h-3" />
+              {item.preparationTime} min
+            </p>
+          )}
         </div>
+
+        {/* Bouton : sélectionné = vert, pas d'icône ; désélection possible */}
+        <button
+          type="button"
+          onClick={handleToggle}
+          disabled={!item.available || isAdding}
+          className={cn(
+            'rounded-lg transition-all duration-200 min-h-[40px] sm:min-h-[44px] px-4 sm:px-5 text-sm font-medium shrink-0',
+            isSelected
+              ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-0'
+              : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200'
+          )}
+        >
+          {isSelected ? 'Sélectionné' : 'Sélectionner'}
+        </button>
       </div>
     </div>
   )
@@ -342,7 +300,9 @@ export default function TableMenuPage({ params }: TableMenuPageProps) {
     : (dailyMenuItems.length === 0 && hasDailyMenuError ? hasDailyMenuError : null)
   
   const [addingItemId, setAddingItemId] = useState<number | string | null>(null)
-  const { addItem, setTableNumber, getItemCount, getTotal, updateQuantity, removeItem } = useCartStore()
+  const [addonModalOpen, setAddonModalOpen] = useState(false)
+  const [addonModalProduct, setAddonModalProduct] = useState<MenuItem | null>(null)
+  const { addItem, addItemWithAddons, setTableNumber, getItemCount, getTotal, removeItem } = useCartStore()
 
   // Set table number in cart when component mounts
   useEffect(() => {
@@ -379,11 +339,22 @@ export default function TableMenuPage({ params }: TableMenuPageProps) {
     })
   }, [dailyMenuItems, menuItems, availableItems, menuItemsError, hasDailyMenuError, error, loading, menuItemsLoading])
 
-  const handleAddToCart = async (item: MenuItem) => {
-    setAddingItemId(item.id)
-    addItem(item, 1)
-    await new Promise((resolve) => setTimeout(resolve, 300))
-    setAddingItemId(null)
+  const handleOpenAddonModal = (item: MenuItem) => {
+    setAddonModalProduct(item)
+    setAddonModalOpen(true)
+  }
+
+  const handleAddonConfirm = (addons: OrderItemAddon[]) => {
+    if (!addonModalProduct) return
+    setAddingItemId(addonModalProduct.id)
+    if (addons.length > 0) {
+      addItemWithAddons(addonModalProduct, 1, addons)
+    } else {
+      addItem(addonModalProduct, 1)
+    }
+    setTimeout(() => setAddingItemId(null), 300)
+    setAddonModalOpen(false)
+    setAddonModalProduct(null)
   }
 
   const handleViewCart = () => {
@@ -451,21 +422,16 @@ export default function TableMenuPage({ params }: TableMenuPageProps) {
             </div>
             
                 {availableItems.length > 0 ? (
-              <>
-                <div className="space-y-3 sm:space-y-4">
-                  {availableItems.map((item) => {
-                    console.log('[TableMenuPage] Rendering item:', { id: item.id, name: item.name, categoryId: item.categoryId })
-                    return (
-                      <MenuItemCard
-                        key={item.id}
-                        item={item}
-                        onAddToCart={handleAddToCart}
-                        isAdding={addingItemId === item.id}
-                      />
-                    )
-                  })}
-                </div>
-              </>
+              <Stagger className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                {availableItems.map((item) => (
+                  <MenuItemCard
+                    key={item.id}
+                    item={item}
+                    onOpenAddonModal={handleOpenAddonModal}
+                    isAdding={addingItemId === item.id}
+                  />
+                ))}
+              </Stagger>
             ) : (
               <FadeIn>
                 <div className="text-center py-16">
@@ -482,6 +448,14 @@ export default function TableMenuPage({ params }: TableMenuPageProps) {
           </div>
         </section>
       )}
+
+      {/* Addon selector modal (options / suppléments) */}
+      <TableAddonSelectorModal
+        open={addonModalOpen}
+        onOpenChange={setAddonModalOpen}
+        product={addonModalProduct}
+        onConfirm={handleAddonConfirm}
+      />
 
       {/* Floating Cart Button */}
       <FloatingCartButton
