@@ -1,18 +1,13 @@
-feat(reservations): formulaire réservation salle dashboard + affichage salles
+feat(app): mode maintenance avec blocage ciblé
 
-Formulaire réservation salle (dashboard)
-- Intégration sélection type de créneau et pack (useReservationSlotTypes, useHallPacks)
-- Soumission via <form> + bouton type="button" onClick pour fiabilité du submit
-- Affichage du message d'erreur réel renvoyé par Supabase
-- Largeur modal augmentée (maxWidth="lg")
-- Payload et reset incluent slotTypeSlug et hallPackId
+Mode maintenance (paramètre + overlay)
+- app_settings: clé maintenance_mode (boolean), migration 014
+- useAppSettings: maintenanceMode, refetch, écoute app-settings-updated
+- Page Paramètres dashboard: carte "Mode maintenance" avec case à cocher, sauvegarde + dispatch event
+- Composant MaintenanceOverlay (message, lien optionnel vers Paramètres)
+- Layouts: public, table, dashboard intègrent l'overlay et refetch à la mise à jour des paramètres
 
-Data layer (reservations.ts)
-- createHallReservation: n'envoie slot_type_slug et hall_pack_id que s'ils sont définis (évite 400 si migration 013 non appliquée)
-- createHallReservation: throw new Error(error.message) pour propager le message d'erreur
-- fetchHallReservations / fetchHallReservationsByHall: select('*') sans jointure halls(name) pour fiabilité du chargement
-- mapHallReservationRow() pour mapping commun ; nom de salle enrichi côté page
-
-Page réservations dashboard
-- hallReservationsWithNames: enrichissement avec le nom de la salle (getHallById)
-- allReservations et stats utilisent hallReservationsWithNames pour afficher les réservations de salles
+Blocage ciblé
+- Site public: overlay uniquement sur les pages d'actions (/reservation, /cart, /menu). Les autres pages (accueil, contact, etc.) restent accessibles
+- Table (QR): overlay sur tout le parcours commande
+- Dashboard et POS: overlay partout sauf /dashboard/settings (accès Paramètres pour désactiver)

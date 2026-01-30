@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase/client'
 
 interface AppSettings {
@@ -12,6 +12,8 @@ interface AppSettings {
   service_fee_rate: number
   service_fee_min: number
   time_slots: string[]
+  /** Mode maintenance : bloque réservations, commandes, actions dashboard et POS. */
+  maintenance_mode: boolean
 }
 
 const defaultSettings: AppSettings = {
@@ -28,6 +30,7 @@ const defaultSettings: AppSettings = {
     '11:30', '12:00', '12:30', '13:00', '13:30', '14:00',
     '19:00', '19:30', '20:00', '20:30', '21:00', '21:30',
   ],
+  maintenance_mode: false,
 }
 
 /**
@@ -65,16 +68,7 @@ export function useAppSettings() {
   const isMountedRef = useRef(true)
   const hasLoadedRef = useRef(false)
 
-  useEffect(() => {
-    isMountedRef.current = true
-    loadSettings()
-    
-    return () => {
-      isMountedRef.current = false
-    }
-  }, [])
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -126,6 +120,8 @@ export function useAppSettings() {
                 loadedSettings[key] = num
               }
             }
+          } else if (key === 'maintenance_mode') {
+            loadedSettings.maintenance_mode = value === true || value === 'true' || value === 1
           } else {
             if (typeof value === 'string') {
               loadedSettings[key] = value
@@ -153,7 +149,16 @@ export function useAppSettings() {
         setLoading(false)
       }
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    isMountedRef.current = true
+    loadSettings()
+
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [loadSettings])
 
   return {
     settings,
@@ -173,5 +178,7 @@ export function useAppSettings() {
     timeSlots: settings.time_slots,
     serviceFeeRate: settings.service_fee_rate,
     serviceFeeMin: settings.service_fee_min,
+    maintenanceMode: settings.maintenance_mode,
+    refetch: loadSettings,
   }
 }

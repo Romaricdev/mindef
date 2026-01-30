@@ -1,8 +1,11 @@
 'use client'
 
+import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { DashboardSidebar, DashboardTopbar } from '@/components/layout/dashboard'
 import { Toaster } from '@/components/ui'
+import { MaintenanceOverlay } from '@/components/MaintenanceOverlay'
+import { useAppSettings } from '@/hooks'
 import { useRequireAdmin } from '@/hooks/useAuth'
 import { useAuthStore } from '@/store/auth-store'
 
@@ -12,12 +15,30 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const { maintenanceMode, refetch } = useAppSettings()
   const { loading, user, isAdmin, isAuthenticated } = useRequireAdmin()
   const initialized = useAuthStore((state) => state.initialized)
 
+  useEffect(() => {
+    const handler = () => refetch()
+    window.addEventListener('app-settings-updated', handler)
+    return () => window.removeEventListener('app-settings-updated', handler)
+  }, [refetch])
+
+  const showMaintenanceOverlay = maintenanceMode && pathname !== '/dashboard/settings'
+
   // POS has its own full-screen layout
   if (pathname === '/dashboard/pos') {
-    return <>{children}</>
+    return (
+      <>
+        <MaintenanceOverlay
+          visible={showMaintenanceOverlay}
+          message="Le POS est temporairement indisponible. Réessayez plus tard ou désactivez le mode maintenance dans Paramètres."
+          settingsPath="/dashboard/settings"
+        />
+        {children}
+      </>
+    )
   }
 
   // Afficher un loader pendant la vérification de l'authentification
@@ -51,6 +72,11 @@ export default function DashboardLayout({
 
   return (
     <div className="dashboard-layout">
+      <MaintenanceOverlay
+        visible={showMaintenanceOverlay}
+        message="Le dashboard est temporairement indisponible. Accédez à Paramètres pour désactiver le mode maintenance."
+        settingsPath="/dashboard/settings"
+      />
       <DashboardSidebar />
       <DashboardTopbar />
       <main className="dashboard-content">

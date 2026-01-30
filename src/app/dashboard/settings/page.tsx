@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '@/components/ui'
+import { useAppSettings } from '@/hooks'
 import { useUIStore } from '@/store'
 import { 
-  Settings, 
   Building2, 
   Clock, 
   Truck, 
   CreditCard, 
   Calendar,
   Save,
-  Loader2
+  Loader2,
+  Construction
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 
@@ -26,6 +27,7 @@ interface AppSettings {
   service_fee_rate: number
   service_fee_min: number
   time_slots: string[]
+  maintenance_mode: boolean
 }
 
 const defaultSettings: AppSettings = {
@@ -42,10 +44,12 @@ const defaultSettings: AppSettings = {
     '11:30', '12:00', '12:30', '13:00', '13:30', '14:00',
     '19:00', '19:30', '20:00', '20:30', '21:00', '21:30',
   ],
+  maintenance_mode: false,
 }
 
 export default function SettingsPage() {
   const addToast = useUIStore((s) => s.addToast)
+  const { refetch: refetchAppSettings } = useAppSettings()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [settings, setSettings] = useState<AppSettings>(defaultSettings)
@@ -101,6 +105,8 @@ export default function SettingsPage() {
                 loadedSettings[key] = num
               }
             }
+          } else if (key === 'maintenance_mode') {
+            loadedSettings.maintenance_mode = value === true || value === 'true' || value === 1
           } else {
             // Les strings peuvent être directement dans JSONB ou comme string
             if (typeof value === 'string') {
@@ -141,6 +147,7 @@ export default function SettingsPage() {
         { key: 'service_fee_rate', value: settings.service_fee_rate },
         { key: 'service_fee_min', value: settings.service_fee_min },
         { key: 'time_slots', value: settings.time_slots },
+        { key: 'maintenance_mode', value: settings.maintenance_mode },
       ]
 
       // Utiliser upsert pour créer ou mettre à jour chaque paramètre
@@ -162,6 +169,10 @@ export default function SettingsPage() {
         type: 'success',
         message: 'Paramètres enregistrés avec succès',
       })
+      refetchAppSettings()
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('app-settings-updated'))
+      }
     } catch (error) {
       console.error('Error saving settings:', error)
       addToast({
@@ -173,7 +184,7 @@ export default function SettingsPage() {
     }
   }
 
-  const handleChange = (key: keyof AppSettings, value: string | number | string[]) => {
+  const handleChange = (key: keyof AppSettings, value: string | number | string[] | boolean) => {
     setSettings((prev) => ({ ...prev, [key]: value }))
   }
 
@@ -224,6 +235,36 @@ export default function SettingsPage() {
           )}
         </Button>
       </div>
+
+      {/* Mode maintenance */}
+      <Card variant="dashboard" padding="lg">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+              <Construction className="w-5 h-5 text-amber-600" />
+            </div>
+            <CardTitle>Mode maintenance</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={settings.maintenance_mode}
+              onChange={(e) => handleChange('maintenance_mode', e.target.checked)}
+              className="h-5 w-5 rounded border-gray-300 text-[#F4A024] focus:ring-[#F4A024]"
+            />
+            <span className="text-sm font-medium text-gray-700">
+              Activer le mode maintenance
+            </span>
+          </label>
+          <p className="text-sm text-gray-500">
+            Lorsque le mode maintenance est activé, les réservations en ligne (tables et salles),
+            les commandes sur le site, les actions du dashboard et du POS sont bloquées.
+            Seule la page Paramètres reste accessible pour désactiver le mode.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Informations du Restaurant */}
       <Card variant="dashboard" padding="lg">
