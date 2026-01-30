@@ -23,6 +23,9 @@ import {
   fetchRevenueByDay,
   fetchTopSellingItems,
   fetchDailyMenus,
+  fetchReservationSlotTypes,
+  fetchHallPacks,
+  fetchReservationContact,
 } from '@/lib/data'
 import type {
   Category,
@@ -38,6 +41,9 @@ import type {
   Menu,
   DashboardStats,
   DailyStat,
+  ReservationSlotType,
+  HallPack,
+  ReservationContact,
 } from '@/types'
 
 interface UseDataResult<T> {
@@ -173,6 +179,34 @@ export function useHallReservationsByHall(
 
 export function useHalls(): UseDataResult<Hall[]> {
   return useData(fetchHalls, [])
+}
+
+export function useReservationSlotTypes(): UseDataResult<ReservationSlotType[]> {
+  return useData(fetchReservationSlotTypes, [])
+}
+
+export function useHallPacks(options?: {
+  slotTypeSlug?: string | null
+  hallId?: number | null
+}): UseDataResult<HallPack[]> {
+  const fetcher = useCallback(
+    () =>
+      fetchHallPacks({
+        slotTypeSlug: options?.slotTypeSlug ?? undefined,
+        hallId: options?.hallId ?? undefined,
+      }),
+    [options?.slotTypeSlug, options?.hallId]
+  )
+  return useData(fetcher, [])
+}
+
+export function useReservationContact(): UseDataResult<ReservationContact> {
+  const defaultContact: ReservationContact = {
+    telephoneReservation: [],
+    telephonePaiement: [],
+    email: '',
+  }
+  return useData(fetchReservationContact, defaultContact)
 }
 
 export function useOrders(): UseDataResult<Order[]> {

@@ -1,11 +1,12 @@
 'use client'
 
+import { useMemo } from 'react'
 import { BaseModal } from './BaseModal'
 import { Badge, Button } from '@/components/ui'
-import { Building2, Users, Calendar, Edit, Lock } from 'lucide-react'
+import { Building2, Users, Calendar, Edit, Lock, Package } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import type { Hall } from '@/types'
-import { useHallReservationsByHall } from '@/hooks'
+import { useHallReservationsByHall, useHallPacks } from '@/hooks'
 
 // ============================================
 // HALL DETAILS MODAL
@@ -17,7 +18,10 @@ interface HallDetailsModalProps {
   hall: Hall | null
   onEdit?: (hall: Hall) => void
   onBlockDates?: (hall: Hall) => void
-  onSelect?: (hall: Hall) => void // Pour la sélection depuis la page réservation publique
+  /** Pour la sélection depuis la page réservation publique */
+  onSelect?: (hall: Hall) => void
+  /** Type de créneau (ex. journee_pleine) pour afficher les packs dans le modal public */
+  slotTypeSlug?: string | null
 }
 
 export function HallDetailsModal({
@@ -27,8 +31,19 @@ export function HallDetailsModal({
   onEdit,
   onBlockDates,
   onSelect,
+  slotTypeSlug,
 }: HallDetailsModalProps) {
   const { data: reservations } = useHallReservationsByHall(hall?.id ?? null)
+  const { data: allPacks } = useHallPacks(
+    onSelect && slotTypeSlug ? { slotTypeSlug } : undefined
+  )
+  const hallPacks = useMemo(() => {
+    if (!hall || !allPacks?.length) return []
+    const id = Number(hall.id)
+    return allPacks
+      .filter((p) => p.hallId === id)
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+  }, [hall, allPacks])
 
   if (!hall) return null
 
@@ -114,8 +129,43 @@ export function HallDetailsModal({
           </div>
         )}
 
-        {/* Upcoming Reservations */}
-        {upcomingReservations.length > 0 && (
+        {/* Packs & tarifs (mode réservation publique) */}
+        {onSelect && hallPacks.length > 0 && (
+          <div className="space-y-3">
+            <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Package className="w-5 h-5 text-site-primary" />
+              Packs & tarifs
+            </h4>
+            <ul className="space-y-2">
+              {hallPacks.map((pack) => (
+                <li
+                  key={pack.id}
+                  className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-lg bg-site-background-muted px-4 py-3 text-sm border border-gray-100"
+                >
+                  <span className="font-medium text-gray-800">
+                    {pack.name ?? 'Offre'}
+                  </span>
+                  <span className="font-semibold text-gray-800 tabular-nums shrink-0">
+                    {pack.costLabel}
+                  </span>
+                  {pack.description && (
+                    <span className="w-full text-xs text-gray-500 leading-snug mt-0.5">
+                      {pack.description}
+                    </span>
+                  )}
+                  {pack.observations && (
+                    <span className="w-full text-xs text-gray-500 italic mt-0.5">
+                      {pack.observations}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Upcoming Reservations (masqué en mode public) */}
+        {!onSelect && upcomingReservations.length > 0 && (
           <div className="space-y-3">
             <h4 className="font-semibold text-gray-900 flex items-center gap-2">
               <Calendar className="w-5 h-5 text-[#F4A024]" />
@@ -145,8 +195,8 @@ export function HallDetailsModal({
           </div>
         )}
 
-        {/* Past Reservations (last 3) */}
-        {pastReservations.length > 0 && (
+        {/* Past Reservations (last 3, masqué en mode public) */}
+        {!onSelect && pastReservations.length > 0 && (
           <div className="space-y-3">
             <h4 className="font-semibold text-gray-900">Réservations passées</h4>
             <div className="space-y-2">
@@ -167,21 +217,9 @@ export function HallDetailsModal({
           </div>
         )}
 
-        {/* Actions */}
+        {/* Actions (bouton "Sélectionner cette salle" masqué sur le site public) */}
         <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
-          {onSelect ? (
-            // Mode sélection pour la page réservation publique
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={() => {
-                onSelect(hall)
-              }}
-              className="gap-2 w-full"
-            >
-              Sélectionner cette salle
-            </Button>
-          ) : (
+          {onSelect ? null : (
             // Mode admin (modifier/bloquer)
             <>
               <Button

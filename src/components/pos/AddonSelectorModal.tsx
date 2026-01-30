@@ -22,7 +22,7 @@ export function AddonSelectorModal() {
   const [extraQuantities, setExtraQuantities] = useState<Map<string, number>>(new Map())
 
   const categoryId = addonModalProduct?.categoryId ?? null
-  const { data: options } = useAddonsWithCategoryOptions(categoryId)
+  const { data: options, loading: optionsLoading, error: optionsError } = useAddonsWithCategoryOptions(categoryId)
 
   useEffect(() => {
     if (addonModalOpen) {
@@ -156,7 +156,12 @@ export function AddonSelectorModal() {
         </div>
 
         {/* Addons: inclus + supplément */}
-        {options.length > 0 ? (
+        {optionsLoading ? (
+          <div className="text-center py-6 text-gray-500">
+            <span className="inline-block w-5 h-5 border-2 border-[#F4A024] border-t-transparent rounded-full animate-spin mb-2" />
+            <p>Chargement des suppléments…</p>
+          </div>
+        ) : options.length > 0 ? (
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
               Options et suppléments
@@ -176,7 +181,13 @@ export function AddonSelectorModal() {
           </div>
         ) : (
           <div className="text-center py-4 text-gray-500">
-            Aucun supplément disponible pour ce produit
+            {!categoryId ? (
+              <p>Ce produit n&apos;a pas de catégorie associée.</p>
+            ) : optionsError ? (
+              <p>Impossible de charger les suppléments. Vérifiez la connexion ou réessayez.</p>
+            ) : (
+              <p>Aucun supplément disponible pour ce produit</p>
+            )}
           </div>
         )}
 

@@ -8,6 +8,7 @@ import { BaseModal } from '@/components/modals'
 import { InvoicePreviewThermal } from './InvoicePreviewThermal'
 import { usePosStore } from '@/store/pos-store'
 import { fetchOrdersPaidToday, type PaidOrderDto } from '@/lib/data/orders'
+import { getInvoicesCache } from '@/lib/cache/invoices-cache'
 import type { PaidOrder } from '@/store/pos-store'
 import { cn } from '@/lib/utils'
 
@@ -34,9 +35,11 @@ export function PaidOrdersModal() {
   const fetchPaid = useCallback(async () => {
     if (!paidOrdersModalOpen) return
 
-    // Si hors ligne, ne pas essayer de charger depuis la DB
+    // Si hors ligne : utiliser le cache des factures chargées avant la coupure
     if (!isOnline()) {
       setIsOffline(true)
+      const cached = getInvoicesCache()
+      setFetched(cached ?? [])
       setLoading(false)
       return
     }
@@ -47,11 +50,10 @@ export function PaidOrdersModal() {
       const data = await fetchOrdersPaidToday()
       setFetched(data)
     } catch (e) {
-      console.warn('[PaidOrdersModal] Error loading orders (will use local data):', e)
-      // En cas d'erreur, on continue avec les données locales
-      // Ne pas bloquer l'interface, juste marquer comme hors ligne
+      console.warn('[PaidOrdersModal] Error loading orders (will use cache/local data):', e)
       setIsOffline(true)
-      // Garder les données DB précédentes si disponibles
+      const cached = getInvoicesCache()
+      setFetched(cached ?? [])
     } finally {
       setLoading(false)
     }
@@ -91,24 +93,24 @@ export function PaidOrdersModal() {
     }
   }, [paidOrdersModalOpen, fetchPaid])
 
-  // Si hors ligne ou pas de données DB, utiliser uniquement les données locales
+  // Fusionner cache/DB (fetched) + commandes payées en session (localToday). En offline, fetched est rempli depuis le cache.
   const paidOrdersToday = useMemo(() => {
     const localToday = getPaidOrdersToday()
-    
-    if (isOffline || fetched.length === 0) {
+
+    if (fetched.length === 0) {
       return localToday.sort(
         (a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime()
       )
     }
-    
-    // Sinon, fusionner local + DB (les données locales ont priorité)
+
+    // Fusionner : cache/DB + locales (les locales écrasent en cas de même id)
     const byId = new Map<string, PaidOrderDisplay>()
     fetched.forEach((o) => byId.set(o.id, o))
     localToday.forEach((o) => byId.set(o.id, o))
     return Array.from(byId.values()).sort(
       (a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime()
     )
-  }, [paidOrders, fetched, isOffline, getPaidOrdersToday])
+  }, [paidOrders, fetched, getPaidOrdersToday])
   
   const todayRevenue = paidOrdersToday.reduce((sum, o) => sum + o.total, 0)
 

@@ -1,0 +1,82 @@
+{
+  "reservation_mess_des_officiers": {
+    "journee_pleine": {
+      "horaires": "De 8H à 8H le lendemain",
+      "salles": [
+        {
+          "nom": "Salle Principale",
+          "capacite": "300 places",
+          "packs": [
+            {
+              "nom": "Pack Alpha",
+              "description": "Salle vide : non équipée, non décorée, sécurité offerte",
+              "cout": "300 000 FCFA"
+            },
+            {
+              "nom": "Pack Bravo",
+              "description": "Salle + chaises + tables + couvert + sono + sécurité offerte",
+              "cout": "À négocier avec le prestataire agréé"
+            },
+            {
+              "nom": "Pack Charlie",
+              "description": "Salle + chaises + tables + couvert + sono + traiteur + sécurité offerte",
+              "cout": "À négocier avec le prestataire agréé"
+            },
+            {
+              "nom": "Pack Delta",
+              "description": "Salle + chaises + tables + couvert + sono + traiteur + décoration + sécurité",
+              "cout": "À négocier avec le prestataire agréé"
+            }
+          ]
+        },
+        {
+          "nom": "Salle Annexe",
+          "capacite": "150 places",
+          "packs": [
+            {
+              "nom": "Pack Alpha",
+              "description": "Salle vide : non équipée, non décorée, sécurité offerte",
+              "cout": "200 000 FCFA"
+            },
+            {
+              "nom": "Pack Bravo",
+              "description": "Salle + chaises + tables + couvert + sono + sécurité offerte",
+              "cout": "À négocier avec le prestataire agréé"
+            },
+            {
+              "nom": "Pack Charlie",
+              "description": "Salle + chaises + tables + couvert + sono + traiteur + sécurité offerte",
+              "cout": "À négocier avec le prestataire agréé"
+            },
+            {
+              "nom": "Pack Delta",
+              "description": "Salle + chaises + tables + couvert + sono + traiteur + décoration + sécurité",
+              "cout": "À négocier avec le prestataire agréé"
+            }
+          ]
+        }
+      ]
+    },
+    "demi_journee": {
+      "horaires": "De 8H à 13H ou de 14H à 18H",
+      "salles": [
+        {
+          "nom": "Salle Annexe",
+          "cout": "100 000 FCFA",
+          "observations": "Tables + chaises + couverts offerts pour 50 personnes; Repas et boissons obligatoirement commandés au Mess"
+        }
+      ]
+    },
+    "contact": {
+      "telephone_reservation": [
+        "222 22 22 22",
+        "+237 651 19 19 19"
+      ],
+      "telephone_paiement": [
+        "+237 678 98 78 90",
+        "+237 698 78 09 87"
+      ],
+      "email": "test@gmail.com"
+    }
+  }
+}

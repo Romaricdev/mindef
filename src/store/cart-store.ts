@@ -129,8 +129,10 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   getServiceFee: () => {
+    // Pas de frais de service pour les commandes via QR code des tables
+    if (get().tableNumber != null) return 0
     const subtotal = get().getSubtotal()
-    // 10% service fee, minimum 500 FCFA
+    // 10% frais de service, minimum 500 FCFA (site public / à emporter)
     return Math.max(subtotal * 0.1, 500)
   },
 

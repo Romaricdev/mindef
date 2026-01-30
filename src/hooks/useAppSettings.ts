@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase/client'
 
 interface AppSettings {
@@ -30,73 +30,73 @@ const defaultSettings: AppSettings = {
   ],
 }
 
+/**
+ * Vérifie si une erreur est vide ou non significative
+ */
+function isEmptyOrAbortError(error: any): boolean {
+  if (!error) return true
+  
+  // Erreur d'annulation
+  if (
+    error?.name === 'AbortError' ||
+    error?.code === 'ABORTED' ||
+    error?.message?.includes('aborted') ||
+    error?.message?.includes('AbortError')
+  ) {
+    return true
+  }
+  
+  // Erreur vide (objet sans propriétés significatives)
+  if (typeof error === 'object') {
+    const hasCode = error.code && error.code !== 'NO_CODE'
+    const hasMessage = error.message && error.message !== 'NO_MESSAGE'
+    const hasDetails = error.details
+    if (!hasCode && !hasMessage && !hasDetails) {
+      return true
+    }
+  }
+  
+  return false
+}
+
 export function useAppSettings() {
   const [settings, setSettings] = useState<AppSettings>(defaultSettings)
   const [loading, setLoading] = useState(true)
+  const isMountedRef = useRef(true)
+  const hasLoadedRef = useRef(false)
 
   useEffect(() => {
+    isMountedRef.current = true
     loadSettings()
+    
+    return () => {
+      isMountedRef.current = false
+    }
   }, [])
 
   const loadSettings = async () => {
     try {
       setLoading(true)
       
-      // Logger pour déboguer
-      console.log('[useAppSettings] Loading settings from app_settings table...')
-      
-      // Fonction helper pour charger les settings avec gestion des AbortError
-      const fetchSettings = async (): Promise<{ data: any; error: any }> => {
-        try {
-          const { data, error } = await supabase
-            .from('app_settings')
-            .select('key, value')
-          return { data, error }
-        } catch (error: any) {
-          // Si c'est une AbortError (React Strict Mode), on la retourne pour réessayer
-          if (error?.message?.includes('AbortError') || error?.message?.includes('aborted')) {
-            return { data: null, error: { message: 'AbortError', code: 'ABORTED' } }
-          }
-          return { data: null, error }
-        }
-      }
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('key, value')
 
-      // Essayer de charger les settings (avec retry si AbortError)
-      let settingsResult = await fetchSettings()
-      
-      // Si AbortError, réessayer une fois après un court délai
-      if (settingsResult.error?.message === 'AbortError' || settingsResult.error?.code === 'ABORTED') {
-        console.log('[useAppSettings] Settings fetch aborted (React Strict Mode), retrying after 300ms...')
-        await new Promise(resolve => setTimeout(resolve, 300))
-        settingsResult = await fetchSettings()
-      }
-
-      const { data, error } = settingsResult
+      // Vérifier si le composant est toujours monté
+      if (!isMountedRef.current) return
 
       if (error) {
-        // Ignorer les AbortError après retry (elles sont normales en dev)
-        if (error.message === 'AbortError' || error.code === 'ABORTED') {
-          console.log('[useAppSettings] Settings fetch still aborted after retry, using defaults')
-        } else {
-          // Logger l'erreur avec tous les détails possibles
-          console.error('[useAppSettings] Error loading app settings:', {
-            code: error.code || 'NO_CODE',
-            message: error.message || 'NO_MESSAGE',
-            details: error.details || 'NO_DETAILS',
-            hint: error.hint || 'NO_HINT',
-            fullError: error,
-          })
+        // Ne logger que les erreurs significatives
+        if (!isEmptyOrAbortError(error)) {
+          console.warn('[useAppSettings] Error loading settings:', error.message || error.code)
         }
-        
-        // En cas d'erreur, on garde les valeurs par défaut
-        // C'est OK si la table n'existe pas encore ou si RLS bloque
-        console.warn('[useAppSettings] Using default settings due to error')
-        setSettings(defaultSettings)
+        // En cas d'erreur, garder les valeurs par défaut ou les dernières valeurs valides
+        if (!hasLoadedRef.current) {
+          setSettings(defaultSettings)
+        }
         setLoading(false)
         return
       }
-
-      console.log('[useAppSettings] Settings loaded successfully, count:', data?.length || 0)
 
       // Convertir les données de la base en objet settings
       const loadedSettings: Partial<AppSettings> = { ...defaultSettings }
@@ -136,20 +136,22 @@ export function useAppSettings() {
         })
       }
 
-      setSettings(loadedSettings as AppSettings)
-      console.log('[useAppSettings] Settings processed and set')
-    } catch (error) {
-      // Logger l'erreur avec plus de détails
-      console.error('[useAppSettings] Unexpected error in loadSettings:', {
-        error,
-        errorType: typeof error,
-        isError: error instanceof Error,
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      })
-      setSettings(defaultSettings)
+      if (isMountedRef.current) {
+        setSettings(loadedSettings as AppSettings)
+        hasLoadedRef.current = true
+      }
+    } catch (error: any) {
+      // Ne logger que les erreurs significatives
+      if (!isEmptyOrAbortError(error)) {
+        console.warn('[useAppSettings] Unexpected error:', error?.message || 'Unknown error')
+      }
+      if (isMountedRef.current && !hasLoadedRef.current) {
+        setSettings(defaultSettings)
+      }
     } finally {
-      setLoading(false)
+      if (isMountedRef.current) {
+        setLoading(false)
+      }
     }
   }
 

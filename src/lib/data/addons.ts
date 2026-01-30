@@ -1,4 +1,11 @@
 import { supabase } from '@/lib/supabase'
+import {
+  getAddonsCache,
+  setAddonsCache,
+  buildAddonsWithCategoryOptionsFromCache,
+  mergeAddonsIntoCache,
+  mergeOptionsIntoCache,
+} from '@/lib/cache/addons-cache'
 import type { Addon, AddonCategoryOption, AddonWithCategoryOption } from '@/types'
 
 interface DbAddon {
@@ -28,74 +35,105 @@ function mapAddon(row: DbAddon, categoryIds: string[]): Addon {
 }
 
 export async function fetchAddons(): Promise<Addon[]> {
-  const [addonsRes, acRes] = await Promise.all([
-    supabase.from('addons').select('*').order('id'),
-    supabase.from('addon_categories').select('addon_id, category_id'),
-  ])
-  if (addonsRes.error) throw addonsRes.error
-  if (acRes.error) throw acRes.error
+  try {
+    const [addonsRes, acRes] = await Promise.all([
+      supabase.from('addons').select('*').order('id'),
+      supabase.from('addon_categories').select('addon_id, category_id'),
+    ])
+    if (addonsRes.error) throw addonsRes.error
+    if (acRes.error) throw acRes.error
 
-  const ac = (acRes.data ?? []) as DbAddonCategory[]
-  const byAddon = new Map<string, string[]>()
-  for (const r of ac) {
-    const arr = byAddon.get(r.addon_id) ?? []
-    arr.push(r.category_id)
-    byAddon.set(r.addon_id, arr)
+    const ac = (acRes.data ?? []) as DbAddonCategory[]
+    const byAddon = new Map<string, string[]>()
+    for (const r of ac) {
+      const arr = byAddon.get(r.addon_id) ?? []
+      arr.push(r.category_id)
+      byAddon.set(r.addon_id, arr)
+    }
+
+    const addons = (addonsRes.data ?? []).map((a: DbAddon) =>
+      mapAddon(a, byAddon.get(a.id) ?? [])
+    )
+    setAddonsCache(addons, getAddonsCache()?.options ?? [])
+    return addons
+  } catch (e) {
+    const cache = getAddonsCache()
+    if (cache?.addons?.length) return cache.addons
+    throw e
   }
-
-  return (addonsRes.data ?? []).map((a: DbAddon) =>
-    mapAddon(a, byAddon.get(a.id) ?? [])
-  )
 }
 
 export async function fetchAddonCategoryOptions(): Promise<AddonCategoryOption[]> {
-  const { data, error } = await supabase
-    .from('addon_categories')
-    .select('addon_id, category_id, included_free, extra_price')
+  try {
+    const { data, error } = await supabase
+      .from('addon_categories')
+      .select('addon_id, category_id, included_free, extra_price')
 
-  if (error) throw error
-  return (data ?? []).map((r: DbAddonCategory) => ({
-    addonId: r.addon_id,
-    categoryId: r.category_id,
-    includedFree: r.included_free,
-    extraPrice: r.extra_price != null ? Number(r.extra_price) : null,
-  }))
+    if (error) throw error
+    const options = (data ?? []).map((r: DbAddonCategory) => ({
+      addonId: r.addon_id,
+      categoryId: r.category_id,
+      includedFree: r.included_free,
+      extraPrice: r.extra_price != null ? Number(r.extra_price) : null,
+    }))
+    setAddonsCache(getAddonsCache()?.addons ?? [], options)
+    return options
+  } catch (e) {
+    const cache = getAddonsCache()
+    if (cache?.options?.length) return cache.options
+    throw e
+  }
 }
 
 export async function fetchAddonsWithCategoryOptions(
   categoryId: string
 ): Promise<AddonWithCategoryOption[]> {
-  const [addonsRes, acRes] = await Promise.all([
-    supabase.from('addons').select('*').eq('available', true).order('id'),
-    supabase
-      .from('addon_categories')
-      .select('addon_id, category_id, included_free, extra_price')
-      .eq('category_id', categoryId),
-  ])
-  if (addonsRes.error) throw addonsRes.error
-  if (acRes.error) throw acRes.error
+  try {
+    const [addonsRes, acRes] = await Promise.all([
+      supabase.from('addons').select('*').eq('available', true).order('id'),
+      supabase
+        .from('addon_categories')
+        .select('addon_id, category_id, included_free, extra_price')
+        .eq('category_id', categoryId),
+    ])
+    if (addonsRes.error) throw addonsRes.error
+    if (acRes.error) throw acRes.error
 
-  const opts = new Map<string, { includedFree: boolean; extraPrice: number | null }>()
-  for (const r of acRes.data ?? []) {
-    const row = r as DbAddonCategory
-    opts.set(row.addon_id, {
-      includedFree: row.included_free,
-      extraPrice: row.extra_price != null ? Number(row.extra_price) : null,
-    })
-  }
+    const opts = new Map<string, { includedFree: boolean; extraPrice: number | null }>()
+    for (const r of acRes.data ?? []) {
+      const row = r as DbAddonCategory
+      opts.set(row.addon_id, {
+        includedFree: row.included_free,
+        extraPrice: row.extra_price != null ? Number(row.extra_price) : null,
+      })
+    }
 
-  const addons = (addonsRes.data ?? []) as DbAddon[]
-  const result: AddonWithCategoryOption[] = []
-  for (const a of addons) {
-    const opt = opts.get(a.id)
-    if (!opt) continue
-    result.push({
-      addon: mapAddon(a, [categoryId]),
-      includedFree: opt.includedFree,
-      extraPrice: opt.extraPrice,
-    })
+    const addons = (addonsRes.data ?? []) as DbAddon[]
+    const result: AddonWithCategoryOption[] = []
+    for (const a of addons) {
+      const opt = opts.get(a.id)
+      if (!opt) continue
+      result.push({
+        addon: mapAddon(a, [categoryId]),
+        includedFree: opt.includedFree,
+        extraPrice: opt.extraPrice,
+      })
+    }
+    mergeAddonsIntoCache(result.map((r) => r.addon))
+    mergeOptionsIntoCache(
+      result.map((r) => ({
+        addonId: r.addon.id,
+        categoryId,
+        includedFree: r.includedFree,
+        extraPrice: r.extraPrice,
+      }))
+    )
+    return result
+  } catch (e) {
+    const cached = buildAddonsWithCategoryOptionsFromCache(categoryId)
+    if (cached?.length) return cached
+    throw e
   }
-  return result
 }
 
 export function getExtraPrice(

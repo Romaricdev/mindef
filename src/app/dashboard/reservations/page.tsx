@@ -353,13 +353,13 @@ export default function ReservationsPage() {
             <Plus className="w-4 h-4" />
             Réserver une salle
           </Button>
-          <Link href="/dashboard/reservations/tables">
+          <Link href="/dashboard/tables">
             <Button variant="secondary" size="sm" className="gap-2">
               <UtensilsCrossed className="w-4 h-4" />
               Tables
             </Button>
           </Link>
-          <Link href="/dashboard/reservations/halls">
+          <Link href="/dashboard/reservation-halls">
             <Button variant="secondary" size="sm" className="gap-2">
               <Building2 className="w-4 h-4" />
               Salles

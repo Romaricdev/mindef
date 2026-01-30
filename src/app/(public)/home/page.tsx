@@ -1,10 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { 
-  ChefHat, 
   Clock, 
   MapPin, 
   Phone,
@@ -13,7 +11,11 @@ import {
   ArrowRight,
   Leaf,
   Award,
-  Users
+  Users,
+  Wine,
+  ChefHat,
+  PartyPopper,
+  Coffee
 } from 'lucide-react'
 import { FadeIn, Stagger } from '@/components/animations'
 import { useAppSettings, useDailyMenuItems } from '@/hooks'
@@ -23,154 +25,66 @@ import { useAppSettings, useDailyMenuItems } from '@/hooks'
 // ============================================
 
 function HeroSection() {
-  const [scrollY, setScrollY] = useState(0)
-  const sectionRef = useRef<HTMLElement>(null)
-
-  // Scroll-based parallax effect (très léger)
-  useEffect(() => {
-    const handleScroll = () => {
-      if (sectionRef.current) {
-        const rect = sectionRef.current.getBoundingClientRect()
-        // Calculer le scroll uniquement dans la section hero
-        if (rect.top <= 0 && rect.bottom > 0) {
-          setScrollY(Math.abs(rect.top))
-        } else {
-          setScrollY(0)
-        }
-      }
-    }
-
-    // Désactiver sur mobile pour la performance
-    if (window.innerWidth >= 768) {
-      window.addEventListener('scroll', handleScroll, { passive: true })
-      return () => window.removeEventListener('scroll', handleScroll)
-    }
-  }, [])
-
   return (
-    <section 
-      ref={sectionRef}
-      className="relative min-h-[50vh] sm:min-h-[60vh] md:min-h-[65vh] lg:h-[calc(100vh-5rem)] flex items-start sm:items-center overflow-hidden bg-white pt-4 sm:pt-6 md:pt-4 lg:pt-0"
-    >
-      {/* Background avec profondeur subtile */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Dégradé très subtil */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#F4A024]/3 via-transparent to-[#F4A024]/2" />
-        
-        {/* Formes géométriques floutées (desktop seulement) */}
-        <div className="hidden lg:block">
-          {/* Cercle décoratif 1 - mouvement parallax très léger */}
-          <div 
-            className="absolute top-1/4 -left-32 w-96 h-96 bg-[#F4A024]/5 rounded-full blur-[100px]"
-            style={{
-              transform: `translateY(${scrollY * 0.15}px)`,
-              transition: 'transform 0.1s ease-out'
-            }}
-          />
-          
-          {/* Cercle décoratif 2 - mouvement parallax très léger */}
-          <div 
-            className="absolute bottom-1/4 -right-32 w-80 h-80 bg-[#F4A024]/4 rounded-full blur-[90px]"
-            style={{
-              transform: `translateY(${-scrollY * 0.1}px)`,
-              transition: 'transform 0.1s ease-out'
-            }}
-          />
-        </div>
-
-        {/* Pattern subtil (desktop seulement) */}
-        <div 
-          className="hidden lg:block absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7z' fill='%23F4A024'/%3E%3C/svg%3E")`,
-            backgroundSize: '60px 60px',
-            transform: `translateY(${scrollY * 0.05}px)`,
-            transition: 'transform 0.1s ease-out'
-          }}
+    <section className="relative min-h-screen flex items-center overflow-hidden">
+      {/* 1. Background Image Full Screen */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2560&auto=format&fit=crop"
+          alt="Ambiance gastronomique au Mess des Officiers"
+          fill
+          className="object-cover"
+          priority
+          quality={95}
         />
+        {/* 2. Overlay Sombre (50%) pour lisibilité */}
+        <div className="absolute inset-0 bg-black/50" />
       </div>
 
-      {/* Contenu principal - Centré verticalement avec padding minimal */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-6 lg:px-8 w-full z-10 py-4 sm:py-6 md:py-6 lg:py-0 lg:h-full flex items-start sm:items-center overflow-x-hidden">
-        <div className="grid md:grid-cols-2 gap-6 sm:gap-6 md:gap-6 lg:gap-12 xl:gap-16 items-center w-full min-w-0">
-          {/* Colonne gauche : Texte + CTA */}
-          <div className="order-2 md:order-1 lg:order-1 flex flex-col justify-start sm:justify-center w-full min-w-0 overflow-hidden">
-            {/* Badge - Animation d'entrée */}
-            <FadeIn delay={0.1}>
-              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-[#F4A024]/10 rounded-full mb-4 sm:mb-5 lg:mb-6 border border-[#F4A024]/20 w-full sm:w-auto md:w-auto justify-center sm:justify-start md:justify-start mt-2 sm:mt-4 md:mt-4 lg:mt-0">
-                <ChefHat className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 text-[#F4A024] flex-shrink-0" />
-                <span className="text-xs sm:text-sm lg:text-base font-medium text-[#F4A024]">
-                  Bienvenue au Mess des Officiers
-                </span>
-              </div>
-            </FadeIn>
+      {/* 3. Contenu Texte */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 flex flex-col justify-center h-full">
+        <div className="max-w-4xl mx-auto lg:mx-0 text-center lg:text-left mt-16 sm:mt-0">
+          
+          {/* Titre Principal */}
+          <FadeIn delay={0.2} direction="up">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-tight tracking-tight drop-shadow-sm">
+              L’Excellence Culinaire
+              <span className="block text-[#F4A024] mt-2">Camerounaise</span>
+            </h1>
+          </FadeIn>
 
-            {/* Main Title - Animation d'entrée */}
-            <FadeIn delay={0.2} direction="up">
-              <h1 className="text-2xl sm:text-3xl md:text-3xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold text-gray-900 leading-[1.15] mb-3 sm:mb-4 md:mb-4 lg:mb-6 text-left">
-                Une Expérience
-                <br />
-                <span className="text-[#F4A024]">Gastronomique</span>
-                <br />
-                D&apos;Exception
-              </h1>
-            </FadeIn>
+          {/* Sous-titre */}
+          <FadeIn delay={0.4} direction="up">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-100 mb-8 sm:mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light drop-shadow-sm opacity-90">
+              Une expérience gastronomique raffinée au cœur de Yaoundé.
+            </p>
+          </FadeIn>
 
-            {/* Description - Animation d'entrée décalée */}
-            <FadeIn delay={0.35} direction="up">
-              <p className="text-sm sm:text-base md:text-base lg:text-xl text-gray-600 mb-4 sm:mb-5 md:mb-5 lg:mb-8 max-w-2xl leading-relaxed text-justify break-words overflow-wrap-anywhere">
-                Découvrez l&apos;art culinaire camerounais dans un cadre élégant et raffiné. 
-                Notre chef vous invite à un voyage gustatif unique, entre traditions ancestrales 
-                et créativité moderne.
-              </p>
-            </FadeIn>
+          {/* Call To Action Buttons */}
+          <FadeIn delay={0.6} direction="up">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 sm:gap-6 w-full sm:w-auto">
+              <Link
+                href="/reservation"
+                className="w-full sm:w-auto px-8 py-4 bg-[#F4A024] text-white font-semibold text-base sm:text-lg rounded-full hover:bg-[#d88d1f] transition-all duration-300 shadow-lg hover:shadow-[#F4A024]/20 transform hover:-translate-y-0.5 text-center min-w-[200px]"
+              >
+                Réserver une Table
+              </Link>
+              <Link
+                href="/menu"
+                className="w-full sm:w-auto px-8 py-4 bg-transparent border-2 border-white text-white font-semibold text-base sm:text-lg rounded-full hover:bg-white hover:text-gray-900 transition-all duration-300 text-center min-w-[200px]"
+              >
+                Découvrir le Menu
+              </Link>
+            </div>
+          </FadeIn>
 
-            {/* CTA Buttons - Animation séquentielle */}
-            <FadeIn delay={0.5} direction="up">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 sm:gap-4 w-full sm:w-auto md:pr-16 lg:pr-0">
-                <Link
-                  href="/menu"
-                  className="w-full sm:w-auto md:w-auto inline-flex items-center justify-center gap-2 px-5 sm:px-6 md:px-5 lg:px-8 py-3 sm:py-3.5 bg-[#F4A024] text-white font-semibold text-sm sm:text-base rounded-xl hover:bg-[#C97F16] transition-all duration-300 shadow-lg shadow-[#F4A024]/25 hover:shadow-xl hover:shadow-[#F4A024]/30 hover:scale-[1.02] min-h-[48px] flex-shrink-0"
-                >
-                  <Utensils className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                  <span className="whitespace-nowrap">Découvrir le Menu</span>
-                </Link>
-                <Link
-                  href="/reservation"
-                  className="w-full sm:w-auto md:w-auto inline-flex items-center justify-center gap-2 px-5 sm:px-6 md:px-5 lg:px-8 py-3 sm:py-3.5 bg-gray-50 text-gray-900 font-semibold text-sm sm:text-base rounded-xl hover:bg-gray-100 transition-all duration-300 border border-gray-200 hover:scale-[1.02] min-h-[48px] flex-shrink-0"
-                >
-                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                  <span className="whitespace-nowrap">Réserver une Table</span>
-                </Link>
-              </div>
-            </FadeIn>
-          </div>
-
-          {/* Colonne droite : Image immersive */}
-          <div className="order-1 md:order-2 relative flex items-center justify-center w-full min-w-0">
-            <FadeIn delay={0.3} direction="left">
-              <div className="relative w-full aspect-[4/3] sm:aspect-[4/5] md:aspect-[3/4] lg:aspect-[4/5] min-h-[300px] sm:min-h-[360px] md:min-h-[420px] lg:min-h-[480px] overflow-hidden bg-white">
-                {/* Image principale */}
-                <Image
-                  src="https://nlpizsiqsanewubknrsu.supabase.co/storage/v1/object/public/images/images_public/407745033_05dbafde-b769-43ad-909e-a3ab5f6dd7ea-removebg-preview.png"
-                  alt="Table dressée élégante au Mess des Officiers"
-                  fill
-                  className="object-contain"
-                  priority
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 40vw"
-                  quality={90}
-                  unoptimized
-                />
-              </div>
-            </FadeIn>
-          </div>
         </div>
       </div>
-
-      {/* Scroll indicator - Animation douce - Masqué sur mobile pour économiser l'espace */}
-      <div className="hidden sm:block absolute bottom-4 sm:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-        <div className="w-5 h-8 sm:w-6 sm:h-10 border-2 border-gray-300 rounded-full flex items-start justify-center p-1.5 sm:p-2">
-          <div className="w-1 h-2 bg-[#F4A024] rounded-full" />
+      
+      {/* Scroll indicator subtil */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce hidden md:block z-20 opacity-70">
+        <div className="w-6 h-10 border-2 border-white/50 rounded-full flex items-start justify-center p-2">
+          <div className="w-1 h-2 bg-white rounded-full" />
         </div>
       </div>
     </section>
@@ -265,6 +179,70 @@ function AboutSection() {
             </div>
           </FadeIn>
         </div>
+      </div>
+    </section>
+  )
+}
+
+function ServicesSection() {
+  const services = [
+    {
+      title: "Réservation de Table",
+      description: "Planifiez vos déjeuners et dîners en toute simplicité. Réservez votre table en ligne pour un moment de partage sans attente.",
+      icon: Calendar,
+    },
+    {
+      title: "Location de Salles",
+      description: "Mariages, séminaires ou banquets : nos salles spacieuses et équipées sont disponibles pour accueillir tous vos grands événements.",
+      icon: PartyPopper,
+    },
+    {
+      title: "Cuisine d'Excellence",
+      description: "Savourez des repas de qualité supérieure, préparés avec passion par nos chefs à partir de produits frais et locaux.",
+      icon: Utensils,
+    },
+    {
+      title: "Service Traiteur",
+      description: "L'expertise gastronomique du Mess s'invite chez vous. Une prestation sur mesure pour sublimer vos réceptions privées.",
+      icon: ChefHat,
+    },
+  ]
+
+  return (
+    <section className="py-12 sm:py-16 md:py-14 lg:py-24 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <FadeIn>
+          <div className="text-center mb-10 sm:mb-12 md:mb-16">
+            <span className="inline-block px-4 py-1.5 bg-[#F4A024]/10 text-[#F4A024] text-sm font-semibold rounded-full mb-4">
+              Nos Services
+            </span>
+            <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Une Offre Complète
+            </h2>
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
+              Du simple repas à l'organisation de grands événements, nous mettons notre savoir-faire à votre service.
+            </p>
+          </div>
+        </FadeIn>
+
+        <Stagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          {services.map((service, index) => (
+            <div 
+              key={index}
+              className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 group border border-gray-100 hover:border-[#F4A024]/20"
+            >
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[#F4A024]/5 rounded-xl flex items-center justify-center mb-6 group-hover:bg-[#F4A024] transition-colors duration-300">
+                <service.icon className="w-6 h-6 sm:w-7 sm:h-7 text-[#F4A024] group-hover:text-white transition-colors duration-300" />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 group-hover:text-[#F4A024] transition-colors">
+                {service.title}
+              </h3>
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed text-justify">
+                {service.description}
+              </p>
+            </div>
+          ))}
+        </Stagger>
       </div>
     </section>
   )
@@ -565,6 +543,7 @@ export default function HomePage() {
     <>
       <HeroSection />
       <AboutSection />
+      <ServicesSection />
       <MenuSection />
       <GallerySection />
       <InfoSection />

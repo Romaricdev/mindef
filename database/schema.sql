@@ -270,6 +270,38 @@ ALTER TABLE halls
   FOREIGN KEY (current_reservation_id) REFERENCES hall_reservations(id) ON DELETE SET NULL;
 
 -- ============================================
+-- RESERVATION SALLES — Types de créneaux + Packs
+-- ============================================
+
+CREATE TABLE reservation_slot_types (
+  id SERIAL PRIMARY KEY,
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  horaires TEXT NOT NULL,
+  display_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE hall_packs (
+  id SERIAL PRIMARY KEY,
+  hall_id INTEGER NOT NULL REFERENCES halls(id) ON DELETE CASCADE,
+  slot_type_slug TEXT NOT NULL,
+  name TEXT,
+  description TEXT,
+  cost_label TEXT NOT NULL,
+  cost_amount NUMERIC(12, 2),
+  observations TEXT,
+  display_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE (hall_id, slot_type_slug, display_order)
+);
+
+CREATE INDEX idx_reservation_slot_types_slug ON reservation_slot_types(slug);
+CREATE INDEX idx_hall_packs_hall_slot ON hall_packs(hall_id, slot_type_slug);
+
+-- ============================================
 -- USERS / PROFILES (auth)
 -- ============================================
 

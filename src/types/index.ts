@@ -192,6 +192,39 @@ export interface HallReservation {
 export type Reservation = TableReservation | HallReservation
 
 // ============================================
+// Réservation salles — types de créneaux et packs
+// ============================================
+
+/** Type de créneau (journée pleine, demi-journée). */
+export interface ReservationSlotType {
+  id: number
+  slug: string
+  name: string
+  horaires: string
+  displayOrder: number
+}
+
+/** Pack / offre par salle et type de créneau. */
+export interface HallPack {
+  id: number
+  hallId: number
+  slotTypeSlug: string
+  name: string | null
+  description: string | null
+  costLabel: string
+  costAmount: number | null
+  observations: string | null
+  displayOrder: number
+}
+
+/** Contact réservation salles (téléphones, email). */
+export interface ReservationContact {
+  telephoneReservation: string[]
+  telephonePaiement: string[]
+  email: string
+}
+
+// ============================================
 // Halls (Salles de fête)
 // ============================================
 

@@ -125,7 +125,16 @@ export async function fetchDailyMenus(): Promise<Menu[]> {
     const dailyMenus = menus.filter((m) => m.type === 'daily')
     console.log('[fetchDailyMenus] Active menus:', menus.length, 'Daily menus:', dailyMenus.length)
     return dailyMenus
-  } catch (error) {
+  } catch (error: any) {
+    // Ne pas logger les erreurs d'annulation comme des erreurs critiques
+    // L'erreur "signal is aborted without reason" est souvent une DOMException avec name='AbortError'
+    if (
+      error?.name === 'AbortError' || 
+      error?.message?.includes('aborted') || 
+      error?.message?.includes('AbortError')
+    ) {
+      throw error
+    }
     console.error('[fetchDailyMenus] Error:', error)
     throw error
   }

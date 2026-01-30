@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { setInvoicesCache } from '@/lib/cache/invoices-cache'
 import type {
   Order,
   OrderItem,
@@ -694,7 +695,9 @@ export async function fetchOrdersPaidToday(): Promise<PaidOrderDto[]> {
 
   const rows = (data ?? []) as (DbOrder & { order_items?: DbOrderItem[]; paid_at: string })[]
   const filtered = rows.filter((r) => isToday(r.paid_at))
-  return filtered.map((r) => mapToPaidOrderDto(r))
+  const result = filtered.map((r) => mapToPaidOrderDto(r))
+  setInvoicesCache(result)
+  return result
 }
 
 /** Récupère le nombre total de personnes actuellement à une table (somme des party_size des commandes actives non payées). */

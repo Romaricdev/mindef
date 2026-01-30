@@ -1,0 +1,6 @@
+feat(dashboard): aide utilisateur, corrections liens et réservation salles
+
+- Aide utilisateur: menu + page /dashboard/help (guide dashboard et POS)
+- Réservations: liens Salles → /dashboard/reservation-halls, Tables → /dashboard/tables
+- Réservation salles (site): masquer le bouton "Sélectionner cette salle" dans le modal
+- reservation-config: corriger typage Supabase (data.value never, upsert Insert)

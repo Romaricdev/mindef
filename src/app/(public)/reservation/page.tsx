@@ -6,6 +6,7 @@ import {
   ReservationSummary, 
   ReservationSuccess,
   ReservationTypeSelector,
+  HallSlotTypeSelector,
   HallSelection,
   HallReservationForm
 } from '@/components/reservation'
@@ -15,7 +16,7 @@ import { Card } from '@/components/ui'
 import { Calendar, ArrowLeft } from 'lucide-react'
 import { FadeIn } from '@/components/animations'
 import { HallDetailsModal } from '@/components/modals'
-import type { Hall } from '@/types'
+import type { Hall, ReservationSlotType } from '@/types'
 
 // ============================================
 // HERO SECTION
@@ -111,6 +112,7 @@ function validateForm(data: ReservationFormData): Partial<Record<keyof Reservati
 export default function ReservationPage() {
   // Reservation type: null = selection, 'table' = table reservation, 'hall' = hall reservation
   const [reservationType, setReservationType] = useState<'table' | 'hall' | null>(null)
+  const [selectedSlotType, setSelectedSlotType] = useState<ReservationSlotType | null>(null)
   const [selectedHall, setSelectedHall] = useState<Hall | null>(null)
   const [hallModalOpen, setHallModalOpen] = useState(false)
   const [hallToView, setHallToView] = useState<Hall | null>(null)
@@ -254,8 +256,8 @@ export default function ReservationPage() {
     )
   }
 
-  // Hall selection screen (before form)
-  if (reservationType === 'hall' && !selectedHall) {
+  // Hall: choix du type de créneau (journée pleine / demi-journée)
+  if (reservationType === 'hall' && !selectedSlotType) {
     return (
       <>
         <ReservationHero reservationType="hall" />
@@ -270,24 +272,45 @@ export default function ReservationPage() {
                 <span className="font-medium">Retour</span>
               </button>
             </div>
-            <HallSelection 
-              onSelectHall={(hall) => {
-                handleSelectHall(hall)
-              }}
-              selectedHallId={hallFormData.hallId ? Number(hallFormData.hallId) : undefined}
+            <HallSlotTypeSelector
+              onSelectSlotType={setSelectedSlotType}
+              selectedSlotSlug={null}
             />
-            
-            {/* Modal de détails de la salle */}
+          </div>
+        </section>
+      </>
+    )
+  }
+
+  // Hall: sélection de la salle (avec packs et contact pour le créneau choisi)
+  if (reservationType === 'hall' && selectedSlotType && !selectedHall) {
+    return (
+      <>
+        <ReservationHero reservationType="hall" />
+        <section className="py-8 sm:py-12 lg:py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-6">
+              <button
+                onClick={() => setSelectedSlotType(null)}
+                className="inline-flex items-center gap-2 text-gray-600 hover:text-[#F4A024] transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="font-medium">Retour</span>
+              </button>
+            </div>
+            <HallSelection
+              onSelectHall={(hall) => handleSelectHall(hall)}
+              selectedHallId={hallFormData.hallId ? Number(hallFormData.hallId) : undefined}
+              slotTypeSlug={selectedSlotType.slug}
+              showContact={true}
+            />
             {hallToView && (
               <HallDetailsModal
                 open={hallModalOpen}
                 onOpenChange={setHallModalOpen}
                 hall={hallToView}
-                onSelect={() => {
-                  if (hallToView) {
-                    handleConfirmHallSelection(hallToView)
-                  }
-                }}
+                slotTypeSlug={selectedSlotType?.slug ?? null}
+                onSelect={(hall) => handleConfirmHallSelection(hall)}
               />
             )}
           </div>

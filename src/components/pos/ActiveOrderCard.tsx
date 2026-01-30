@@ -63,8 +63,17 @@ export function ActiveOrderCard({ order, onUpdateStatus, onServe, onPaymentCompl
   const [invoiceModalOpen, setInvoiceModalOpen] = useState(false)
   const [preliminaryInvoiceModalOpen, setPreliminaryInvoiceModalOpen] = useState(false)
   const [customerInfoModalOpen, setCustomerInfoModalOpen] = useState(false)
-  const [customerName, setCustomerName] = useState(order.customerName || '')
-  const [customerPhone, setCustomerPhone] = useState(order.customerPhone || '')
+  // Placeholders utilisés en base pour les commandes table QR (sans infos client réelles)
+  const PLACEHOLDER_PHONE = '—'
+  const PLACEHOLDER_NAMES = ['Client Table', 'Client sur place']
+  const [customerName, setCustomerName] = useState(() => {
+    const n = (order.customerName || '').trim()
+    return !n || PLACEHOLDER_NAMES.includes(n) ? '' : (order.customerName || '')
+  })
+  const [customerPhone, setCustomerPhone] = useState(() => {
+    const p = (order.customerPhone || '').trim()
+    return !p || p === PLACEHOLDER_PHONE ? '' : (order.customerPhone || '')
+  })
   const [customerEmail, setCustomerEmail] = useState(order.customerEmail || '')
   const [paymentData, setPaymentData] = useState<{
     method: PaymentMethod
@@ -159,7 +168,14 @@ export function ActiveOrderCard({ order, onUpdateStatus, onServe, onPaymentCompl
 
   const { addPaidOrder, reopenOrderForEdit, reopenOrderForEditWithOrder, generatePreliminaryInvoiceNumber, updateOrderCustomerInfo, cancelActiveOrder, removeItemFromActiveOrder, activeOrders } = usePosStore()
 
-  const isCustomerInfoValid = customerName.trim().length > 0 && customerPhone.trim().length > 0
+  // Infos client valides seulement si nom et téléphone sont renseignés ET ne sont pas des placeholders (commandes table QR)
+  const isPlaceholderPhone = (phone: string) => !phone?.trim() || phone.trim() === PLACEHOLDER_PHONE
+  const isPlaceholderName = (name: string) => !name?.trim() || PLACEHOLDER_NAMES.includes(name.trim())
+  const isCustomerInfoValid =
+    customerName.trim().length > 0 &&
+    customerPhone.trim().length > 0 &&
+    !isPlaceholderPhone(customerPhone) &&
+    !isPlaceholderName(customerName)
 
   const handleOpenPayment = () => {
     if (!isCustomerInfoValid) {

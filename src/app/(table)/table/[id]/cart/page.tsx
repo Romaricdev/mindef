@@ -145,10 +145,12 @@ function OrderSummary({
           <span>Sous-total</span>
           <span className="font-semibold">{formatPrice(subtotal, 'XAF').replace('XAF', 'FCFA')}</span>
         </div>
-        <div className="flex justify-between text-base sm:text-lg text-gray-700">
-          <span>Frais de service</span>
-          <span className="font-semibold">{formatPrice(serviceFee, 'XAF').replace('XAF', 'FCFA')}</span>
-        </div>
+        {serviceFee > 0 && (
+          <div className="flex justify-between text-base sm:text-lg text-gray-700">
+            <span>Frais de service</span>
+            <span className="font-semibold">{formatPrice(serviceFee, 'XAF').replace('XAF', 'FCFA')}</span>
+          </div>
+        )}
         <div className="border-t-2 border-gray-300 pt-4 sm:pt-5 flex justify-between">
           <span className="text-lg sm:text-xl font-bold text-gray-900">Total</span>
           <span className="text-xl sm:text-2xl font-bold text-[#F4A024]">{formatPrice(total, 'XAF').replace('XAF', 'FCFA')}</span>

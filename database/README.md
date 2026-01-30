@@ -29,6 +29,8 @@ Ce dossier contient la **conception** et le **schéma SQL** de la base de donné
    - `005_create_profile_trigger.sql` : Trigger pour créer automatiquement un profil lors de l'inscription.
    - `006_create_admin_helper.sql` : Fonction helper pour créer un admin (vérifie que le compte Auth existe).
    - `007_admins_rls.sql` : Politiques RLS pour la table `admins` (OBLIGATOIRE pour que l'authentification fonctionne).
+   - `011_reservation_slots_and_packs.sql` : Tables `reservation_slot_types` et `hall_packs` (types de créneaux + packs tarifaires par salle) + RLS.
+   - `011_seed_reservation_slots.sql` : Données initiales réservation salles (créneaux journée pleine / demi-journée, packs, contact). Exécuter après la migration 011.
 8. **Créer un administrateur** : Voir `scripts/create_admin.sql` pour les instructions complètes.
 
 ### PostgreSQL local

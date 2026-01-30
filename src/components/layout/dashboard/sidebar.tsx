@@ -16,7 +16,9 @@ import {
   UtensilsCrossed,
   X,
   Monitor,
-  Layers
+  Layers,
+  Receipt,
+  HelpCircle
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUIStore } from '@/store'
@@ -26,6 +28,7 @@ const navItems = [
   { label: 'POS', href: '/dashboard/pos', icon: Monitor, highlight: true },
   { label: 'Tables', href: '/dashboard/tables', icon: UtensilsCrossed },
   { label: 'Salles', href: '/dashboard/halls', icon: Building2 },
+  { label: 'Réservation salles', href: '/dashboard/reservation-halls', icon: Receipt },
   { label: 'Réservations', href: '/dashboard/reservations', icon: Calendar },
   { label: 'Commandes', href: '/dashboard/orders', icon: ShoppingBag },
   { label: 'Menus', href: '/dashboard/menus', icon: ChefHat },
@@ -33,6 +36,7 @@ const navItems = [
   { label: 'Catégories', href: '/dashboard/categories', icon: Grid3X3 },
   { label: 'Addons', href: '/dashboard/addons', icon: Layers },
   { label: 'Paramètres', href: '/dashboard/settings', icon: Settings },
+  { label: 'Aide utilisateur', href: '/dashboard/help', icon: HelpCircle },
 ]
 
 export function DashboardSidebar() {
