@@ -274,8 +274,14 @@ export const usePosStore = create<PosState>((set, get) => ({
       const isOnline = typeof navigator !== 'undefined' && navigator.onLine
       if (isOnline) {
         try {
-          await updateTableStatusByNumber(tableNumber, 'occupied')
-          console.log(`[POS] Table ${tableNumber} marked as occupied`)
+          // Ne mettre à jour current_party_size que si une valeur est fournie (évite d'écraser quand on ajoute une commande sur une table déjà occupée)
+          await updateTableStatusByNumber(
+            tableNumber,
+            'occupied',
+            undefined,
+            partySize !== undefined ? { currentPartySize: partySize } : undefined
+          )
+          console.log(`[POS] Table ${tableNumber} marked as occupied`, partySize != null ? `(${partySize} pers.)` : '')
         } catch (error) {
           console.error(`[POS] Error updating table ${tableNumber} status:`, error)
           // Ne pas bloquer l'interface en cas d'erreur
@@ -557,7 +563,9 @@ export const usePosStore = create<PosState>((set, get) => ({
       
       // Libérer la table (mettre à jour le statut à "available" si pas de commande active)
       try {
-        await updateTableStatusByNumber(currentOrder.tableNumber, 'available', null)
+        await updateTableStatusByNumber(currentOrder.tableNumber, 'available', null, {
+          currentPartySize: null,
+        })
         console.log(`[POS] Table ${currentOrder.tableNumber} released`)
       } catch (error) {
         console.error(`[POS] Error releasing table ${currentOrder.tableNumber}:`, error)
@@ -911,16 +919,14 @@ export const usePosStore = create<PosState>((set, get) => ({
     const deliveryFee = currentOrder.deliveryFee || 0
     const total = subtotal + deliveryFee
 
-    // Update the active order with new items, totals, and reset status to preparing
+    // Update the active order with new items and totals ; ne pas modifier le statut cuisine (changement manuel uniquement)
     const updatedActiveOrder: ActiveOrder = {
       ...existingOrder,
       items: currentOrder.items,
       subtotal: subtotal,
       total: total,
       deliveryFee: deliveryFee,
-      // Reset to 'preparing' since new items need to be prepared
-      kitchenStatus: 'preparing',
-      // Track which items were original
+      kitchenStatus: existingOrder.kitchenStatus,
       originalItemIds,
     }
 
@@ -955,9 +961,8 @@ export const usePosStore = create<PosState>((set, get) => ({
       })
     }
 
-    // Enqueue updates to database
+    // Enqueue updates to database (articles + totaux uniquement ; pas de changement de statut)
     enqueueItemsUpdate(editingActiveOrderId, mapPosItemsToCreateItems(updatedActiveOrder.items))
-    enqueueStatusUpdate(editingActiveOrderId, 'preparing')
     
     // Also update the order totals in DB (subtotal, total, delivery_fee)
     // We'll update this directly since it's a simple update
@@ -1111,7 +1116,9 @@ export const usePosStore = create<PosState>((set, get) => ({
       const isOnline = typeof navigator !== 'undefined' && navigator.onLine
       if (isOnline) {
         try {
-          await updateTableStatusByNumber(order.tableNumber, 'available', null)
+          await updateTableStatusByNumber(order.tableNumber, 'available', null, {
+            currentPartySize: null,
+          })
           console.log(`[POS] Table ${order.tableNumber} released after payment`)
         } catch (error) {
           console.error(`[POS] Error releasing table ${order.tableNumber} after payment:`, error)

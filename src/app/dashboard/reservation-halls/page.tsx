@@ -10,8 +10,12 @@ import {
 } from '@/hooks'
 import {
   updateSlotType,
+  createHallPack,
   updateHallPack,
+  deleteHallPack,
   updateReservationContact,
+  type CreateHallPackInput,
+  type UpdateHallPackInput,
 } from '@/lib/data/reservation-config'
 import { useUIStore } from '@/store'
 import {
@@ -23,7 +27,10 @@ import {
   Loader2,
   Edit,
   Receipt,
+  Plus,
+  Trash2,
 } from 'lucide-react'
+import { HallPackFormModal } from '@/components/modals/forms'
 import type {
   ReservationSlotType,
   HallPack,
@@ -119,45 +126,37 @@ function SlotTypeRow({
 }
 
 // ============================================
-// HALL PACK ROW (inline edit) — rend une ligne complète avec nom salle
+// HALL PACK ROW — affichage + actions Modifier / Supprimer
 // ============================================
 
 function HallPackRow({
   pack,
   hallName,
-  onSave,
+  onEdit,
+  onDelete,
 }: {
   pack: HallPack
   hallName: string
-  onSave: () => void
+  onEdit: () => void
+  onDelete: () => void
 }) {
-  const [editing, setEditing] = useState(false)
-  const [name, setName] = useState(pack.name ?? '')
-  const [description, setDescription] = useState(pack.description ?? '')
-  const [costLabel, setCostLabel] = useState(pack.costLabel)
-  const [observations, setObservations] = useState(pack.observations ?? '')
-  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const addToast = useUIStore((s) => s.addToast)
 
-  const handleSave = async () => {
-    setSaving(true)
+  const handleDelete = async () => {
+    if (!window.confirm('Supprimer ce pack ? Cette action est irréversible.')) return
+    setDeleting(true)
     try {
-      await updateHallPack(pack.id, {
-        name: name.trim() || null,
-        description: description.trim() || null,
-        costLabel: costLabel.trim(),
-        observations: observations.trim() || null,
-      })
-      addToast({ type: 'success', message: 'Pack mis à jour' })
-      setEditing(false)
-      onSave()
+      await deleteHallPack(pack.id)
+      addToast({ type: 'success', message: 'Pack supprimé' })
+      onDelete()
     } catch (e) {
       addToast({
         type: 'error',
         message: e instanceof Error ? e.message : 'Erreur',
       })
     } finally {
-      setSaving(false)
+      setDeleting(false)
     }
   }
 
@@ -167,79 +166,39 @@ function HallPackRow({
         {hallName}
       </td>
       <td className="py-3 px-4">
-        {editing ? (
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Nom (optionnel)"
-            className="max-w-[160px]"
-          />
-        ) : (
-          <span className="font-medium text-dashboard-text-primary">
-            {pack.name ?? '—'}
-          </span>
-        )}
+        <span className="font-medium text-dashboard-text-primary">
+          {pack.name ?? '—'}
+        </span>
       </td>
       <td className="py-3 px-4 max-w-[200px]">
-        {editing ? (
-          <Input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Description"
-          />
-        ) : (
-          <span className="text-sm text-dashboard-text-secondary line-clamp-2">
-            {pack.description ?? '—'}
-          </span>
-        )}
+        <span className="text-sm text-dashboard-text-secondary line-clamp-2">
+          {pack.description ?? '—'}
+        </span>
       </td>
       <td className="py-3 px-4">
-        {editing ? (
-          <Input
-            value={costLabel}
-            onChange={(e) => setCostLabel(e.target.value)}
-            placeholder="Coût (ex: 300 000 FCFA)"
-            className="max-w-[160px]"
-          />
-        ) : (
-          <span className="text-dashboard-primary font-semibold">{pack.costLabel}</span>
-        )}
+        <span className="text-dashboard-primary font-semibold">{pack.costLabel}</span>
       </td>
       <td className="py-3 px-4 max-w-[200px]">
-        {editing ? (
-          <Input
-            value={observations}
-            onChange={(e) => setObservations(e.target.value)}
-            placeholder="Observations"
-          />
-        ) : (
-          <span className="text-xs text-dashboard-text-muted line-clamp-2">
-            {pack.observations ?? '—'}
-          </span>
-        )}
+        <span className="text-xs text-dashboard-text-muted line-clamp-2">
+          {pack.observations ?? '—'}
+        </span>
       </td>
       <td className="py-3 px-4 text-right">
-        {editing ? (
-          <div className="flex gap-2 justify-end">
-            <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>
-              Annuler
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleSave}
-              disabled={saving}
-              className="gap-1"
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Enregistrer
-            </Button>
-          </div>
-        ) : (
-          <Button variant="ghost" size="icon-sm" onClick={() => setEditing(true)} title="Modifier">
+        <div className="flex gap-1 justify-end">
+          <Button variant="ghost" size="icon-sm" onClick={onEdit} title="Modifier">
             <Edit className="w-4 h-4" />
           </Button>
-        )}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={handleDelete}
+            disabled={deleting}
+            title="Supprimer"
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+          </Button>
+        </div>
       </td>
     </tr>
   )
@@ -263,6 +222,9 @@ export default function ReservationHallsPage() {
   })
   const [contactDirty, setContactDirty] = useState(false)
   const [savingContact, setSavingContact] = useState(false)
+
+  const [packModalOpen, setPackModalOpen] = useState(false)
+  const [selectedPack, setSelectedPack] = useState<HallPack | null>(null)
 
   useEffect(() => {
     if (contact && !contactDirty) {
@@ -291,6 +253,18 @@ export default function ReservationHallsPage() {
     for (const arr of map.values()) arr.sort((a, b) => a.displayOrder - b.displayOrder)
     return map
   }, [packs])
+
+  const handleCreatePack = async (data: CreateHallPackInput) => {
+    await createHallPack(data)
+    addToast({ type: 'success', message: 'Pack créé' })
+    refetchPacks()
+  }
+
+  const handleUpdatePack = async (id: number, data: UpdateHallPackInput) => {
+    await updateHallPack(id, data)
+    addToast({ type: 'success', message: 'Pack mis à jour' })
+    refetchPacks()
+  }
 
   const handleSaveContact = async () => {
     setSavingContact(true)
@@ -359,11 +333,23 @@ export default function ReservationHallsPage() {
 
       {/* Packs par salle */}
       <Card variant="dashboard" padding="none">
-        <CardHeader className="border-b border-dashboard-border">
+        <CardHeader className="border-b border-dashboard-border flex flex-row items-center justify-between gap-4">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Receipt className="w-5 h-5 text-dashboard-primary" />
             Packs par salle et créneau
           </CardTitle>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => {
+              setSelectedPack(null)
+              setPackModalOpen(true)
+            }}
+            className="gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Ajouter un pack
+          </Button>
         </CardHeader>
         <CardContent className="p-0">
           {loadingPacks ? (
@@ -397,7 +383,11 @@ export default function ReservationHallsPage() {
                                 key={pack.id}
                                 pack={pack}
                                 hallName={hallById.get(Number(pack.hallId))?.name ?? `Salle #${pack.hallId}`}
-                                onSave={refetchPacks}
+                                onEdit={() => {
+                                  setSelectedPack(pack)
+                                  setPackModalOpen(true)
+                                }}
+                                onDelete={refetchPacks}
                               />
                             )
                           )
@@ -411,11 +401,22 @@ export default function ReservationHallsPage() {
           )}
           {packs?.length === 0 && !loadingPacks && (
             <p className="py-8 text-center text-dashboard-text-muted">
-              Aucun pack. Exécutez le seed des réservations salles.
+              Aucun pack. Cliquez sur « Ajouter un pack » pour en créer un.
             </p>
           )}
         </CardContent>
       </Card>
+
+      {/* Modal création / modification pack */}
+      <HallPackFormModal
+        open={packModalOpen}
+        onOpenChange={setPackModalOpen}
+        pack={selectedPack}
+        halls={halls ?? []}
+        slotTypes={slotTypes ?? []}
+        onSubmitCreate={handleCreatePack}
+        onSubmitUpdate={handleUpdatePack}
+      />
 
       {/* Contact réservation */}
       <Card variant="dashboard" padding="lg">

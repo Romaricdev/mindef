@@ -16,6 +16,7 @@ import { Card } from '@/components/ui'
 import { Calendar, ArrowLeft } from 'lucide-react'
 import { FadeIn } from '@/components/animations'
 import { HallDetailsModal } from '@/components/modals'
+import { createTableReservation } from '@/lib/data/reservations'
 import type { Hall, ReservationSlotType } from '@/types'
 
 // ============================================
@@ -142,6 +143,7 @@ export default function ReservationPage() {
   })
 
   const [errors, setErrors] = useState<Partial<Record<keyof ReservationFormData | keyof HallReservationFormData, string>>>({})
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const successRef = useRef<HTMLDivElement>(null)
@@ -178,14 +180,12 @@ export default function ReservationPage() {
 
   const handleConfirm = async () => {
     if (reservationType === 'table') {
-      // Validate table form
       const validationErrors = validateForm(tableFormData)
       if (Object.keys(validationErrors).length > 0) {
         setErrors(validationErrors)
         return
       }
     } else if (reservationType === 'hall') {
-      // Validate hall form
       const validationErrors: Partial<Record<keyof HallReservationFormData, string>> = {}
       if (!hallFormData.fullName.trim()) {
         validationErrors.fullName = 'Le nom est requis'
@@ -209,17 +209,35 @@ export default function ReservationPage() {
     }
 
     setIsLoading(true)
+    setErrors({})
+    setSubmitError(null)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      if (reservationType === 'table') {
+        const partySizeRaw = tableFormData.partySize.trim()
+        const partySize = partySizeRaw === '10+' ? 10 : Math.max(1, parseInt(partySizeRaw, 10) || 1)
+        await createTableReservation({
+          customerName: tableFormData.fullName.trim(),
+          customerPhone: tableFormData.phone.trim(),
+          date: tableFormData.date,
+          time: tableFormData.time,
+          partySize,
+          notes: tableFormData.message.trim() || undefined,
+        })
+      } else if (reservationType === 'hall') {
+        // TODO: appeler createHallReservation quand le formulaire salle sera branché au backend
+        await new Promise((resolve) => setTimeout(resolve, 1500))
+      }
 
-    setIsLoading(false)
-    setIsSuccess(true)
-
-    // Scroll to success message
-    setTimeout(() => {
-      successRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 100)
+      setIsSuccess(true)
+      setTimeout(() => {
+        successRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Une erreur est survenue. Veuillez réessayer.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   if (isSuccess) {
@@ -367,6 +385,7 @@ export default function ReservationPage() {
                       formData={tableFormData}
                       onConfirm={handleConfirm}
                       isLoading={isLoading}
+                      submitError={submitError}
                     />
                   </div>
                 </div>

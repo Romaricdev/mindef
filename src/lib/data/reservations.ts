@@ -74,30 +74,33 @@ export async function fetchTableReservationsByStatus(
 export async function fetchHallReservations(): Promise<HallReservation[]> {
   const { data, error } = await supabase
     .from('hall_reservations')
-    .select('*, halls(name)')
+    .select('*')
     .order('start_date', { ascending: true })
 
   if (error) throw error
-  return (data ?? []).map((r: Record<string, unknown>) => {
-    const hall = r.halls as { name: string } | null
-    return {
-      id: r.id as string,
-      type: 'hall' as const,
-      customerName: r.customer_name as string,
-      customerPhone: r.customer_phone as string,
-      customerEmail: (r.customer_email as string) ?? undefined,
-      organization: (r.organization as string) ?? undefined,
-      hallId: r.hall_id as number,
-      hallName: hall?.name ?? '',
-      startDate: formatDate(r.start_date as string),
-      endDate: formatDate(r.end_date as string),
-      eventType: (r.event_type as string) ?? undefined,
-      expectedGuests: (r.expected_guests as number) ?? undefined,
-      notes: (r.notes as string) ?? undefined,
-      status: r.status as 'pending' | 'confirmed' | 'cancelled',
-      createdAt: (r.created_at as string) ?? '',
-    }
-  })
+  return (data ?? []).map((r: Record<string, unknown>) => mapHallReservationRow(r))
+}
+
+function mapHallReservationRow(r: Record<string, unknown>, hallName?: string): HallReservation {
+  return {
+    id: r.id as string,
+    type: 'hall',
+    customerName: r.customer_name as string,
+    customerPhone: r.customer_phone as string,
+    customerEmail: (r.customer_email as string) ?? undefined,
+    organization: (r.organization as string) ?? undefined,
+    hallId: r.hall_id as number,
+    hallName: hallName ?? '',
+    startDate: formatDate(r.start_date as string),
+    endDate: formatDate(r.end_date as string),
+    eventType: (r.event_type as string) ?? undefined,
+    expectedGuests: (r.expected_guests as number) ?? undefined,
+    notes: (r.notes as string) ?? undefined,
+    status: r.status as 'pending' | 'confirmed' | 'cancelled',
+    createdAt: (r.created_at as string) ?? '',
+    slotTypeSlug: (r.slot_type_slug as string) ?? undefined,
+    hallPackId: (r.hall_pack_id as number) ?? undefined,
+  }
 }
 
 export async function fetchHallReservationsByHall(
@@ -105,31 +108,12 @@ export async function fetchHallReservationsByHall(
 ): Promise<HallReservation[]> {
   const { data, error } = await supabase
     .from('hall_reservations')
-    .select('*, halls(name)')
+    .select('*')
     .eq('hall_id', hallId)
     .order('start_date', { ascending: true })
 
   if (error) throw error
-  return (data ?? []).map((r: Record<string, unknown>) => {
-    const hall = r.halls as { name: string } | null
-    return {
-      id: r.id as string,
-      type: 'hall' as const,
-      customerName: r.customer_name as string,
-      customerPhone: r.customer_phone as string,
-      customerEmail: (r.customer_email as string) ?? undefined,
-      organization: (r.organization as string) ?? undefined,
-      hallId: r.hall_id as number,
-      hallName: hall?.name ?? '',
-      startDate: formatDate(r.start_date as string),
-      endDate: formatDate(r.end_date as string),
-      eventType: (r.event_type as string) ?? undefined,
-      expectedGuests: (r.expected_guests as number) ?? undefined,
-      notes: (r.notes as string) ?? undefined,
-      status: r.status as 'pending' | 'confirmed' | 'cancelled',
-      createdAt: (r.created_at as string) ?? '',
-    }
-  })
+  return (data ?? []).map((r: Record<string, unknown>) => mapHallReservationRow(r))
 }
 
 export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled'
@@ -157,7 +141,7 @@ export async function createTableReservation(
     party_size: input.partySize,
     table_number: input.tableNumber ?? null,
     notes: input.notes?.trim() || null,
-    status: 'confirmed',
+    status: 'pending', // En attente de validation par l'admin
   }
   const { error } = await (supabase.from('table_reservations') as any).insert(
     row
@@ -268,12 +252,16 @@ export type CreateHallReservationInput = {
   eventType?: string
   expectedGuests?: number
   notes?: string
+  /** Type de créneau (ex. journee_pleine). */
+  slotTypeSlug?: string
+  /** Pack tarifaire choisi (id hall_packs). */
+  hallPackId?: number
 }
 
 export async function createHallReservation(
   input: CreateHallReservationInput
 ): Promise<void> {
-  const row = {
+  const row: Record<string, unknown> = {
     hall_id: input.hallId,
     customer_name: input.customerName.trim(),
     customer_phone: input.customerPhone.trim(),
@@ -286,8 +274,13 @@ export async function createHallReservation(
     notes: input.notes?.trim() || null,
     status: 'confirmed',
   }
+  // Colonnes ajoutées par la migration 013 ; ne les envoyer que si définies pour éviter 400 si la migration n'est pas appliquée
+  const slotSlug = input.slotTypeSlug?.trim()
+  if (slotSlug) row.slot_type_slug = slotSlug
+  if (input.hallPackId != null) row.hall_pack_id = input.hallPackId
+
   const { error } = await (supabase.from('hall_reservations') as any).insert(row)
-  if (error) throw error
+  if (error) throw new Error(error.message || 'Erreur lors de l\'insertion de la réservation.')
 }
 
 export async function updateHallReservationStatus(

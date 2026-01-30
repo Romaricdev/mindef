@@ -70,20 +70,18 @@ export function TableConfigModal({
     return currentPartySize >= table.capacity
   }, [table, currentPartySize])
 
-  // Validation : le nombre de personnes ne doit pas dépasser les places disponibles
-  // Mais on peut toujours créer une commande même si la capacité est atteinte (sans ajouter de personnes)
+  // Validation : le nombre de personnes ne doit pas dépasser les places disponibles.
+  // Table occupée : on peut toujours créer une nouvelle commande sans ressaisir le nombre de personnes.
   const isValid = useMemo(() => {
-    // Si la capacité est atteinte, on peut créer une commande sans ajouter de personnes
+    if (table?.status === 'occupied') return true
     if (isCapacityReached) return true
-    // Sinon, on valide le nombre saisi
     if (!partySize) return false
     const size = parseInt(partySize, 10)
     if (size < 1) return false
-    // Vérifier que le nombre ne dépasse pas les places disponibles
     return size <= availableSeats
-  }, [partySize, isCapacityReached, availableSeats])
+  }, [table?.status, partySize, isCapacityReached, availableSeats])
 
-  const submitDisabled = !canConfigure || (!isValid && !isCapacityReached)
+  const submitDisabled = !canConfigure || !isValid
 
   // Charger le nombre de personnes actuellement à la table si elle est occupée
   useEffect(() => {
@@ -240,13 +238,17 @@ export function TableConfigModal({
             htmlFor="partySize"
             className="block text-sm font-semibold text-gray-900 mb-2"
           >
-            Nombre de personnes {!isCapacityReached && <span className="text-red-500">*</span>}
-            {!isCapacityReached && currentPartySize !== null && currentPartySize > 0 && (
+            Nombre de personnes{' '}
+            {table.status !== 'occupied' && !isCapacityReached && <span className="text-red-500">*</span>}
+            {table.status === 'occupied' && (
+              <span className="ml-2 text-xs font-normal text-gray-500">(optionnel pour ajouter une commande)</span>
+            )}
+            {table.status !== 'occupied' && !isCapacityReached && currentPartySize !== null && currentPartySize > 0 && (
               <span className="ml-2 text-xs font-normal text-gray-500">
                 (Places disponibles: {availableSeats})
               </span>
             )}
-            {isCapacityReached && (
+            {table.status !== 'occupied' && isCapacityReached && (
               <span className="ml-2 text-xs font-normal text-gray-500">
                 (Optionnel - capacité atteinte)
               </span>
@@ -260,9 +262,11 @@ export function TableConfigModal({
             value={partySize}
             onChange={(e) => setPartySize(e.target.value)}
             placeholder={
-              isCapacityReached
-                ? 'Capacité maximale atteinte'
-                : `1 à ${availableSeats} personne${availableSeats > 1 ? 's' : ''}`
+              table.status === 'occupied'
+                ? `Optionnel — actuellement ${currentPartySize ?? '…'} pers.`
+                : isCapacityReached
+                  ? 'Capacité maximale atteinte'
+                  : `1 à ${availableSeats} personne${availableSeats > 1 ? 's' : ''}`
             }
             disabled={isCapacityReached || loadingPartySize}
             className="w-full"

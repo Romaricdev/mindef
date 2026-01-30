@@ -8,7 +8,7 @@ import { Reservation, TableReservation, HallReservation } from '@/types'
 import { Badge, Button } from '@/components/ui'
 
 const statusConfig: Record<string, { label: string; variant: 'warning' | 'success' | 'error' }> = {
-  pending: { label: 'En attente', variant: 'warning' },
+  pending: { label: 'En attente de validation', variant: 'warning' },
   confirmed: { label: 'Confirmée', variant: 'success' },
   cancelled: { label: 'Annulée', variant: 'error' },
 }

@@ -87,14 +87,16 @@ export function PosLayout({
     const isOnline = typeof navigator !== 'undefined' && navigator.onLine
     if (isOnline) {
       try {
-        await updateTableStatusByNumber(tableNumber, 'available', null)
+        await updateTableStatusByNumber(tableNumber, 'available', null, {
+          currentPartySize: null,
+        })
         console.log(`[POS] Table ${tableNumber} released manually`)
         
         // Mettre à jour localement l'état de la table immédiatement
         setTables((prevTables) =>
           prevTables.map((t) =>
             t.number === tableNumber
-              ? { ...t, status: 'available' as const, currentOrderId: undefined }
+              ? { ...t, status: 'available' as const, currentOrderId: undefined, currentPartySize: undefined }
               : t
           )
         )

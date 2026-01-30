@@ -36,7 +36,7 @@ interface ReservationCardProps {
 
 function ReservationCard({ reservation, onConfirm, onCancel, onViewDetail, getHallById }: ReservationCardProps) {
   const statusConfig = {
-    pending: { label: 'En attente', variant: 'warning' as const },
+    pending: { label: 'En attente de validation', variant: 'warning' as const },
     confirmed: { label: 'Confirmée', variant: 'success' as const },
     cancelled: { label: 'Annulée', variant: 'error' as const },
   }
@@ -225,7 +225,16 @@ export default function ReservationsPage() {
   const isLoading = tableLoading || hallLoading
   const getHallById = (id: number | string) => halls.find((h) => h.id === id) ?? null
 
-  const allReservations: Reservation[] = [...tableReservations, ...hallReservations]
+  const hallReservationsWithNames = useMemo(
+    () =>
+      hallReservations.map((r) => ({
+        ...r,
+        hallName: getHallById(r.hallId)?.name ?? r.hallName ?? '',
+      })),
+    [hallReservations, halls]
+  )
+
+  const allReservations: Reservation[] = [...tableReservations, ...hallReservationsWithNames]
 
   let filteredReservations = allReservations
   if (typeFilter !== 'all') {
@@ -238,7 +247,7 @@ export default function ReservationsPage() {
   const stats = {
     total: allReservations.length,
     tables: tableReservations.length,
-    halls: hallReservations.length,
+    halls: hallReservationsWithNames.length,
     pending: allReservations.filter((r) => r.status === 'pending').length,
     confirmed: allReservations.filter((r) => r.status === 'confirmed').length,
     cancelled: allReservations.filter(r => r.status === 'cancelled').length,
@@ -416,7 +425,7 @@ export default function ReservationsPage() {
           <CardContent className="p-0">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500 mb-1">En attente</p>
+                <p className="text-xs text-gray-500 mb-1">En attente de validation</p>
                 <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-[#F4A024]/10 flex items-center justify-center">
@@ -476,7 +485,7 @@ export default function ReservationsPage() {
               onValueChange={(value) => setStatusFilter(value as 'all' | 'pending' | 'confirmed' | 'cancelled')}
               options={[
                 { value: 'all', label: `Tous les statuts (${stats.total})` },
-                { value: 'pending', label: `En attente (${stats.pending})` },
+                { value: 'pending', label: `En attente de validation (${stats.pending})` },
                 { value: 'confirmed', label: `Confirmées (${stats.confirmed})` },
                 { value: 'cancelled', label: `Annulées (${stats.cancelled})` },
               ]}

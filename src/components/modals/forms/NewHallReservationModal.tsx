@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { BaseModal } from '@/components/modals'
 import { Button, Input, Select, Textarea } from '@/components/ui'
 import {
@@ -12,7 +12,10 @@ import {
   Users,
   MessageSquare,
   Check,
+  Clock,
+  Package,
 } from 'lucide-react'
+import { useReservationSlotTypes, useHallPacks } from '@/hooks'
 import type { CreateHallReservationInput } from '@/lib/data'
 import type { Hall } from '@/types'
 
@@ -43,6 +46,8 @@ export function NewHallReservationModal({
   halls = [],
 }: NewHallReservationModalProps) {
   const [hallId, setHallId] = useState<string>('')
+  const [slotTypeSlug, setSlotTypeSlug] = useState<string>('')
+  const [hallPackId, setHallPackId] = useState<string>('')
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
@@ -55,6 +60,32 @@ export function NewHallReservationModal({
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  const { data: slotTypes = [] } = useReservationSlotTypes()
+  const { data: packsForHall = [] } = useHallPacks({
+    hallId: hallId ? parseInt(hallId, 10) : undefined,
+  })
+
+  const slotTypeOptions = useMemo(() => {
+    const slugs = [...new Set(packsForHall.map((p) => p.slotTypeSlug))]
+    return slugs
+      .map((slug) => {
+        const st = slotTypes.find((s) => s.slug === slug)
+        return { value: slug, label: st?.name ?? slug }
+      })
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [packsForHall, slotTypes])
+
+  const packOptions = useMemo(() => {
+    if (!slotTypeSlug) return []
+    return packsForHall
+      .filter((p) => p.slotTypeSlug === slotTypeSlug)
+      .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+      .map((p) => ({
+        value: String(p.id),
+        label: p.name ? `${p.name}${p.costLabel ? ` — ${p.costLabel}` : ''}` : p.costLabel || `Pack #${p.id}`,
+      }))
+  }, [packsForHall, slotTypeSlug])
+
   const isValid =
     Boolean(hallId) &&
     Boolean(customerName.trim()) &&
@@ -65,6 +96,8 @@ export function NewHallReservationModal({
 
   const resetForm = useCallback(() => {
     setHallId('')
+    setSlotTypeSlug('')
+    setHallPackId('')
     setCustomerName('')
     setCustomerPhone('')
     setCustomerEmail('')
@@ -86,6 +119,10 @@ export function NewHallReservationModal({
   )
 
   const handleSubmit = useCallback(async () => {
+    if (!onSubmit) {
+      setError('Configuration erreur : aucune action de création fournie.')
+      return
+    }
     if (!isValid) {
       setError('Veuillez remplir les champs obligatoires (salle, nom, téléphone, dates).')
       return
@@ -95,6 +132,8 @@ export function NewHallReservationModal({
     try {
       const payload: CreateHallReservationInput = {
         hallId: parseInt(hallId, 10),
+        slotTypeSlug: slotTypeSlug.trim() || undefined,
+        hallPackId: hallPackId ? parseInt(hallPackId, 10) : undefined,
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
         customerEmail: customerEmail.trim() || undefined,
@@ -105,17 +144,25 @@ export function NewHallReservationModal({
         expectedGuests: expectedGuests ? parseInt(expectedGuests, 10) : undefined,
         notes: notes.trim() || undefined,
       }
-      await onSubmit?.(payload)
+      await onSubmit(payload)
       resetForm()
       onOpenChange(false)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur lors de la création')
+      const message =
+        e instanceof Error
+          ? e.message
+          : typeof (e as { message?: string })?.message === 'string'
+            ? (e as { message: string }).message
+            : 'Erreur lors de la création'
+      setError(message)
     } finally {
       setSubmitting(false)
     }
   }, [
     isValid,
     hallId,
+    slotTypeSlug,
+    hallPackId,
     customerName,
     customerPhone,
     customerEmail,
@@ -133,15 +180,23 @@ export function NewHallReservationModal({
   const eventOptions = EVENT_TYPES.map((t) => ({ value: t, label: t }))
   const defaultHallImage = 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800&auto=format&fit=crop'
 
+  const onFormSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault()
+      void handleSubmit()
+    },
+    [handleSubmit]
+  )
+
   return (
     <BaseModal
       open={open}
       onOpenChange={handleOpenChange}
       title="Nouvelle réservation de salle"
       description="Choisissez une salle puis renseignez les informations"
-      maxWidth="md"
+      maxWidth="lg"
     >
-      <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+      <form onSubmit={onFormSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
         {error && (
           <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-600">
             {error}
@@ -167,7 +222,11 @@ export function NewHallReservationModal({
                   <button
                     key={hall.id}
                     type="button"
-                    onClick={() => setHallId(String(hall.id))}
+                    onClick={() => {
+                      setHallId(String(hall.id))
+                      setSlotTypeSlug('')
+                      setHallPackId('')
+                    }}
                     className={`rounded-lg border-2 overflow-hidden text-left transition-all ${
                       isSelected
                         ? 'border-[#F4A024] ring-2 ring-[#F4A024]/30'
@@ -201,6 +260,49 @@ export function NewHallReservationModal({
             </div>
           )}
         </div>
+
+        {hallId && slotTypeOptions.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Type de créneau <span className="text-gray-400 text-xs">(optionnel)</span>
+            </label>
+            <div className="flex rounded-lg border border-gray-300 overflow-hidden bg-white focus-within:ring-2 focus-within:ring-[#F4A024] focus-within:ring-offset-0">
+              <div className="w-14 flex-shrink-0 flex items-center justify-center text-gray-400 bg-gray-50/80 border-r border-gray-200">
+                <Clock className="w-4 h-4" />
+              </div>
+              <Select
+                value={slotTypeSlug}
+                onValueChange={(v) => {
+                  setSlotTypeSlug(v)
+                  setHallPackId('')
+                }}
+                options={slotTypeOptions}
+                placeholder="Sélectionner un créneau"
+                className="flex-1 min-w-0 border-0 rounded-none focus:ring-0"
+              />
+            </div>
+          </div>
+        )}
+
+        {hallId && slotTypeSlug && packOptions.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Pack <span className="text-gray-400 text-xs">(optionnel)</span>
+            </label>
+            <div className="flex rounded-lg border border-gray-300 overflow-hidden bg-white focus-within:ring-2 focus-within:ring-[#F4A024] focus-within:ring-offset-0">
+              <div className="w-14 flex-shrink-0 flex items-center justify-center text-gray-400 bg-gray-50/80 border-r border-gray-200">
+                <Package className="w-4 h-4" />
+              </div>
+              <Select
+                value={hallPackId}
+                onValueChange={setHallPackId}
+                options={packOptions}
+                placeholder="Sélectionner un pack"
+                className="flex-1 min-w-0 border-0 rounded-none focus:ring-0"
+              />
+            </div>
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -361,6 +463,7 @@ export function NewHallReservationModal({
 
         <div className="flex gap-2 pt-4 border-t border-gray-200">
           <Button
+            type="button"
             variant="secondary"
             onClick={() => handleOpenChange(false)}
             disabled={submitting}
@@ -369,15 +472,20 @@ export function NewHallReservationModal({
             Annuler
           </Button>
           <Button
+            type="button"
             variant="primary"
-            onClick={handleSubmit}
             disabled={!isValid || submitting}
             className="flex-1"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              void handleSubmit()
+            }}
           >
             {submitting ? 'Création…' : 'Créer la réservation'}
           </Button>
         </div>
-      </div>
+      </form>
     </BaseModal>
   )
 }

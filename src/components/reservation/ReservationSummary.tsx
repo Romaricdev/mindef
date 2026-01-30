@@ -9,9 +9,11 @@ interface ReservationSummaryProps {
   formData: ReservationFormData
   onConfirm: () => void
   isLoading?: boolean
+  /** Erreur renvoyée par le serveur à l'envoi */
+  submitError?: string | null
 }
 
-export function ReservationSummary({ formData, onConfirm, isLoading = false }: ReservationSummaryProps) {
+export function ReservationSummary({ formData, onConfirm, isLoading = false, submitError }: ReservationSummaryProps) {
   const hasRequiredFields = formData.fullName && formData.phone && formData.date && formData.time && formData.partySize
 
   const formatTime = (time: string) => {
@@ -80,6 +82,12 @@ export function ReservationSummary({ formData, onConfirm, isLoading = false }: R
           </div>
         )}
       </div>
+
+      {submitError && (
+        <div className="mb-4 p-4 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+          {submitError}
+        </div>
+      )}
 
       {/* Confirm Button */}
       <button

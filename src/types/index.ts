@@ -186,6 +186,10 @@ export interface HallReservation {
   notes?: string
   status: 'pending' | 'confirmed' | 'cancelled'
   createdAt: string
+  /** Type de créneau (ex. journee_pleine) choisi lors de la réservation. */
+  slotTypeSlug?: string
+  /** Pack tarifaire choisi (id dans hall_packs). */
+  hallPackId?: number
 }
 
 // Union type pour toutes les réservations
@@ -289,6 +293,8 @@ export interface RestaurantTable {
   capacity: number
   status: 'available' | 'occupied' | 'reserved'
   currentOrderId?: ID
+  /** Nombre de personnes à la table (saisi à l'ouverture POS, avant toute commande validée). */
+  currentPartySize?: number | null
 }
 
 // ============================================

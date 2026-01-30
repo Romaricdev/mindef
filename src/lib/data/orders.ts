@@ -700,7 +700,7 @@ export async function fetchOrdersPaidToday(): Promise<PaidOrderDto[]> {
   return result
 }
 
-/** Récupère le nombre total de personnes actuellement à une table (somme des party_size des commandes actives non payées). */
+/** Récupère le nombre total de personnes actuellement à une table : somme des party_size des commandes actives non payées, ou current_party_size de la table si aucune commande validée encore. */
 export async function getCurrentPartySizeForTable(tableNumber: number): Promise<number> {
   try {
     const today = new Date()
@@ -731,11 +731,16 @@ export async function getCurrentPartySizeForTable(tableNumber: number): Promise<
     }
 
     const rows = (data ?? []) as { party_size: number | null }[]
-    const total = rows
+    const totalFromOrders = rows
       .filter((row) => row.party_size != null)
       .reduce((sum, row) => sum + Number(row.party_size), 0)
 
-    return total
+    if (totalFromOrders > 0) return totalFromOrders
+
+    // Aucune commande validée pour cette table : utiliser le nombre saisi à l'ouverture (current_party_size)
+    const { fetchTableByNumber } = await import('./tables')
+    const table = await fetchTableByNumber(tableNumber)
+    return table?.currentPartySize ?? 0
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     console.warn('[DB] getCurrentPartySizeForTable - Exception:', { tableNumber, message: msg })

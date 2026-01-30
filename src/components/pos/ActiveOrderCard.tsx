@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Clock, UtensilsCrossed, ShoppingBag, Truck, ChefHat, CheckCircle, CreditCard, Printer, Plus, User, Phone, Mail, AlertTriangle, Trash2, XCircle } from 'lucide-react'
+import { Clock, UtensilsCrossed, ShoppingBag, Truck, ChefHat, CheckCircle, CreditCard, Printer, Plus, User, Phone, AlertTriangle, Trash2, XCircle } from 'lucide-react'
 import { cn, formatPrice } from '@/lib/utils'
 import { Button, Input } from '@/components/ui'
 import { useOrderTimer } from '@/hooks/useOrderTimer'
@@ -74,7 +74,6 @@ export function ActiveOrderCard({ order, onUpdateStatus, onServe, onPaymentCompl
     const p = (order.customerPhone || '').trim()
     return !p || p === PLACEHOLDER_PHONE ? '' : (order.customerPhone || '')
   })
-  const [customerEmail, setCustomerEmail] = useState(order.customerEmail || '')
   const [paymentData, setPaymentData] = useState<{
     method: PaymentMethod
     amountReceived?: number
@@ -186,7 +185,7 @@ export function ActiveOrderCard({ order, onUpdateStatus, onServe, onPaymentCompl
   }
 
   const handleSaveCustomerInfo = () => {
-    updateOrderCustomerInfo(order.id, customerName, customerPhone, customerEmail || undefined)
+    updateOrderCustomerInfo(order.id, customerName, customerPhone, undefined)
     setCustomerInfoModalOpen(false)
     setPaymentModalOpen(true)
   }
@@ -199,7 +198,6 @@ export function ActiveOrderCard({ order, onUpdateStatus, onServe, onPaymentCompl
       ...order,
       customerName,
       customerPhone,
-      customerEmail: customerEmail || undefined,
     }
     addPaidOrder(orderWithCustomerInfo, method, amountReceived, change)
     // Ne pas appeler onPaymentComplete ici : on retire la commande seulement à la fermeture de la facture
@@ -549,23 +547,6 @@ export function ActiveOrderCard({ order, onUpdateStatus, onServe, onPaymentCompl
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 placeholder="+237 6XX XXX XXX"
-                className="flex-1 min-w-0 border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email <span className="text-gray-400 text-xs">(optionnel)</span>
-            </label>
-            <div className="flex rounded-lg border border-gray-300 overflow-hidden bg-white focus-within:ring-2 focus-within:ring-[#F4A024] focus-within:ring-offset-0">
-              <div className="w-14 flex-shrink-0 flex items-center justify-center text-gray-400 bg-gray-50/80 border-r border-gray-200">
-                <Mail className="w-4 h-4" />
-              </div>
-              <Input
-                value={customerEmail}
-                onChange={(e) => setCustomerEmail(e.target.value)}
-                placeholder="email@exemple.com"
                 className="flex-1 min-w-0 border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
               />
             </div>

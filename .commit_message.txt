@@ -1,6 +1,18 @@
-feat(dashboard): aide utilisateur, corrections liens et réservation salles
+feat(reservations): formulaire réservation salle dashboard + affichage salles
 
-- Aide utilisateur: menu + page /dashboard/help (guide dashboard et POS)
-- Réservations: liens Salles → /dashboard/reservation-halls, Tables → /dashboard/tables
-- Réservation salles (site): masquer le bouton "Sélectionner cette salle" dans le modal
-- reservation-config: corriger typage Supabase (data.value never, upsert Insert)
+Formulaire réservation salle (dashboard)
+- Intégration sélection type de créneau et pack (useReservationSlotTypes, useHallPacks)
+- Soumission via <form> + bouton type="button" onClick pour fiabilité du submit
+- Affichage du message d'erreur réel renvoyé par Supabase
+- Largeur modal augmentée (maxWidth="lg")
+- Payload et reset incluent slotTypeSlug et hallPackId
+
+Data layer (reservations.ts)
+- createHallReservation: n'envoie slot_type_slug et hall_pack_id que s'ils sont définis (évite 400 si migration 013 non appliquée)
+- createHallReservation: throw new Error(error.message) pour propager le message d'erreur
+- fetchHallReservations / fetchHallReservationsByHall: select('*') sans jointure halls(name) pour fiabilité du chargement
+- mapHallReservationRow() pour mapping commun ; nom de salle enrichi côté page
+
+Page réservations dashboard
+- hallReservationsWithNames: enrichissement avec le nom de la salle (getHallById)
+- allReservations et stats utilisent hallReservationsWithNames pour afficher les réservations de salles
